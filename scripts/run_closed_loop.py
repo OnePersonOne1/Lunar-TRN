@@ -76,20 +76,33 @@ def main() -> None:
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="results/closed_loop.json")
-    ap.add_argument("--tau", type=float, default=None)
+    ap.add_argument("--tau", default=None,
+                    help="고정 τ[s] 숫자 | 'wallclock'(unity 전용) | 생략(config 샘플러)")
     ap.add_argument("--fp-rate", type=float, default=None)
     ap.add_argument("--delay-comp", choices=["on", "off"], default=None)
     ap.add_argument("--measurement", choices=["stat", "truth", "unity"], default="stat")
+    ap.add_argument("--detector", choices=["fp32", "int8"], default="int8",
+                    help="unity 측정용 탐지기 정밀도")
+    ap.add_argument("--detector-path", default=None,
+                    help="탐지기 경로 직접 지정 (기본: runs/export/crater_{fp32,int8}.engine)")
+    ap.add_argument("--frames-dir", default=None, help="unity: overlay 프레임 저장 디렉터리")
     ap.add_argument("--figs-prefix", default=None, help="예: figs/p1 → figs/p1_trajectory.png 등")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh)
     delay_comp = None if args.delay_comp is None else args.delay_comp == "on"
+    tau = args.tau
+    if tau is not None and tau != "wallclock":
+        tau = float(tau)
+    detector_path = args.detector_path
+    if args.measurement == "unity" and detector_path is None:
+        detector_path = f"runs/export/crater_{args.detector}.engine"
 
     res = run_closed_loop(
-        cfg, args.seed, tau=args.tau, fp_rate=args.fp_rate,
+        cfg, args.seed, tau=tau, fp_rate=args.fp_rate,
         delay_comp=delay_comp, measurement=args.measurement,
+        detector_path=detector_path, frames_dir=args.frames_dir,
     )
 
     n_meas = len(res["gate_log"])
@@ -99,8 +112,13 @@ def main() -> None:
         "params": {
             "seed": args.seed, "tau": args.tau, "fp_rate": args.fp_rate,
             "delay_comp": delay_comp, "measurement": args.measurement,
+            "detector": detector_path,
             "assumed_measurement_stats": res["meas_assumed"],
         },
+        "meas_log": [
+            {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in e.items()}
+            for e in res["meas_log"]
+        ],
         "landing_xy_m": res["landing_xy"].tolist(),
         "landing_error_m": float(np.linalg.norm(res["landing_xy"])),
         "landing_v_mps": res["landing_v"],

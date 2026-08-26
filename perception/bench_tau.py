@@ -379,6 +379,7 @@ def main() -> None:
     ap.add_argument("--out", default="results", help="tau_*.json 출력 디렉터리")
     ap.add_argument("--fig", default="figs/p2_tau_hist.png")
     ap.add_argument("--n-sanity", type=int, default=20)
+    ap.add_argument("--model", default=None, help="config detector.model 대신 쓸 가중치 (P5 학습 모델)")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fh:
@@ -392,7 +393,7 @@ def main() -> None:
 
     from ultralytics import YOLO
 
-    model = YOLO(cfg["detector"]["model"])
+    model = YOLO(args.model or cfg["detector"]["model"])
     onnx_path = model.export(format="onnx", imgsz=imgsz, batch=1, dynamic=False, device="cpu")
     print(f"onnx: {onnx_path}", flush=True)
 

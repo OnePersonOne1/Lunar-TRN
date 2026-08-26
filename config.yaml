@@ -52,6 +52,7 @@ measurement:
   fp_rate: 0.05                     # 오검출(잘못된 연관) 확률
   fp_offset_m: 2000.0               # 오검출 시 무작위 방향 이상치 크기
   n_min_inliers: 4
+  assoc_gate_px: 50.0               # 데이터 연관 게이트 반경 (예측 투영 vs 탐지 중심)
 
 tau:
   mode: constant               # constant | empirical

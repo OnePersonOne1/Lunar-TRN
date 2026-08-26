@@ -50,6 +50,93 @@ class StatMeasurementModel:
         return r_true + self.rng.normal(0.0, self.sigma), True
 
 
+class UnityMeasurementModel:
+    """Unity-in-the-loop 측정 (P6): 렌더 → 탐지 → 연관(EKF 예측 pose) → PnP → z.
+
+    τ_wallclock(탐지+연관+PnP 실측 시간)을 함께 반환한다. frames_dir가 있으면
+    렌더+탐지 박스+투영 카탈로그 overlay PNG를 저장한다(영상용).
+    """
+
+    def __init__(
+        self,
+        cfg: dict,
+        rng: np.random.Generator,
+        detector_path: str,
+        catalog_path: str = "data/processed/catalog_L.csv",
+        frames_dir: str | None = None,
+    ) -> None:
+        from perception.detect import Detector
+        from unity.client import RenderClient
+
+        self.cfg = cfg
+        self.client = RenderClient(cfg)
+        self.detector = Detector(detector_path, cfg)
+        cat = np.genfromtxt(catalog_path, delimiter=",", names=True)
+        self.catalog = np.column_stack([cat["x"], cat["y"], cat["z"], cat["D"]])
+        ds = cfg["dataset"]
+        self.sun_az = float(rng.uniform(*[float(v) for v in ds["sun_az_deg"]]))
+        self.sun_el = float(rng.uniform(*[float(v) for v in ds["sun_el_deg"]]))
+        self.frames_dir = Path(frames_dir) if frames_dir else None
+        if self.frames_dir:
+            self.frames_dir.mkdir(parents=True, exist_ok=True)
+        self.assumed = False  # 실측정 경로
+
+    def sample_frame(
+        self, r_true: np.ndarray, r_pred: np.ndarray, frame_id: int, t: float
+    ) -> dict:
+        """한 프레임 측정. 반환: z, valid, tau_wallclock_s, n_det, n_match, n_inliers,
+        pnp_err_m(참값 대비), reproj_err_px."""
+        import time as _time
+
+        from perception.associate import associate
+        from perception.pnp import solve_pnp
+
+        img = self.client.render(r_true, self.sun_az, self.sun_el, frame_id=frame_id, t=t)
+        t0 = _time.perf_counter()
+        centers = self.detector.centers(img)
+        pairs = associate(centers, r_pred, self.catalog, self.cfg)
+        res = {"r_PnP": None, "valid": False, "n_inliers": 0, "reproj_err_px": None}
+        if len(pairs) >= 4:
+            pts_L = self.catalog[[c for _, c in pairs], :3]
+            uv = centers[[d for d, _ in pairs]]
+            res = solve_pnp(pts_L, uv, self.cfg)
+        tau_wall = _time.perf_counter() - t0
+
+        if self.frames_dir is not None:
+            self._save_overlay(img, centers, r_pred, frame_id)
+        z = res["r_PnP"]
+        return {
+            "z": None if z is None else np.asarray(z, dtype=float),
+            "valid": bool(res["valid"]),
+            "tau_wallclock_s": tau_wall,
+            "n_det": int(len(centers)),
+            "n_match": int(len(pairs)),
+            "n_inliers": int(res["n_inliers"]),
+            "pnp_err_m": None if z is None else float(np.linalg.norm(z - r_true)),
+            "reproj_err_px": res["reproj_err_px"],
+        }
+
+    def _save_overlay(
+        self, img: np.ndarray, centers: np.ndarray, r_pred: np.ndarray, frame_id: int
+    ) -> None:
+        import cv2
+
+        from perception.camera import K_cam, project
+
+        canvas = img.copy()
+        f = K_cam(self.cfg)[0, 0]
+        uv, z_C, valid = project(self.catalog[:, :3], r_pred, self.cfg)
+        for i in np.flatnonzero(valid):
+            rad = f * self.catalog[i, 3] / z_C[i] / 2.0
+            cv2.circle(canvas, (int(uv[i, 0]), int(uv[i, 1])), int(rad), (0, 255, 0), 1)
+        for u, v in centers:
+            cv2.drawMarker(canvas, (int(u), int(v)), (0, 0, 255), cv2.MARKER_CROSS, 16, 2)
+        cv2.imwrite(str(self.frames_dir / f"{frame_id:05d}.png"), canvas)
+
+    def close(self) -> None:
+        self.client.close()
+
+
 class TauSampler:
     """추론 지연 τ 샘플러: constant | empirical(results/tau_*.json의 samples_s 리샘플)."""
 
