@@ -17,5 +17,7 @@ ultralytics
 # 휠을 curl로 직접 받아 설치한 뒤: pip install tensorrt-cu12 --no-deps --extra-index-url https://pypi.nvidia.com
 tensorrt-cu12
 onnxruntime
+onnx
+onnxslim
 openvino
 pytest

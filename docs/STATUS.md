@@ -1,5 +1,26 @@
 # STATUS
 
+## P2 · τ 벤치마크 (2026-08-26)
+
+- 완료: perception/bench_tau.py — ONNX export(yolo11n 사전학습, imgsz 1024, batch 1),
+  INT8 static QDQ 양자화(백엔드별 변형: ORT CPU는 U8S8 비대칭, TRT는 S8S8 대칭+bias FP,
+  탐지 헤드 model.23 제외 — 헤드 양자화 시 탐지 소멸), TensorRT 엔진(FP32 / explicit QDQ INT8),
+  τ_det = 전처리+추론+NMS 프로토콜(warmup 50, n_iter 1000), sanity(IoU), docs/bench_protocol.md
+- 테스트 결과: `pytest -q` 43 passed. tests/test_tau_sampler.py — empirical 스키마 로드 검증
+- 핵심 수치 (RTX 5060 Ti / Ryzen 5 5600X 1스레드, 캘리브레이션 "temporary"):
+  | 백엔드 | median | p95 | sanity IoU |
+  |---|---|---|---|
+  | TensorRT FP32 | 20.55 ms | 22.56 ms | — |
+  | TensorRT INT8 | 20.02 ms | 22.25 ms | 0.949 ✔ |
+  | ORT CPU FP32 | 206.81 ms | 211.65 ms | — |
+  | ORT CPU INT8 | 179.39 ms | 190.31 ms | 0.922 ✔ |
+- 생성 파일: results/tau_{trt,ort_cpu}_{fp32,int8}.json, figs/p2_tau_hist.png, logs/p2_bench.log
+- 특이사항: ① PyPI tensorrt 대신 tensorrt-cu12 11.2.1.2 사용 중 — TRT 11은 implicit INT8
+  캘리브레이션 API가 제거되어 explicit QDQ 경로로 구현 ② TRT INT8 제약: 대칭 zero-point만,
+  Int32 bias DQ 불가, attention(model.10) 0차원 상수 Q/DQ 불가 → 해당 부분 제외
+  ③ 캘리브레이션이 임시 이미지(ultralytics 샘플 증강)이므로 P5에서 실제 렌더 이미지로 재실행 필요
+- 다음 단계: P3 데이터 파이프라인 (원본 데이터·site 확정 대기)
+
 ## P1 · 시뮬 코어 (2026-08-26)
 
 - 완료:

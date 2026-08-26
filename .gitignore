@@ -7,6 +7,9 @@ results/large/
 unity/Library/
 unity/Temp/
 *.engine
+*.calib
+*.pt
+*.onnx
 
 # Python
 .venv/
