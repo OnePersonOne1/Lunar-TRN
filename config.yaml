@@ -62,6 +62,7 @@ tau:
 mc:
   n_runs: 200
   workers: 8
+  bootstrap_n: 1000            # CEP 부트스트랩 95% CI 리샘플 횟수
 
 detector:
   model: yolo11n.pt            # YOLO 계열 nano. 계열 내 최신 nano로 교체 가능
