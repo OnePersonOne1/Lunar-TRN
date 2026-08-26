@@ -1,0 +1,15 @@
+# CLAUDE.md §3
+data/raw/
+docs/ref/
+runs/
+logs/
+results/large/
+unity/Library/
+unity/Temp/
+*.engine
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/

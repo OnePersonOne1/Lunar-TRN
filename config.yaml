@@ -1,0 +1,89 @@
+# lunar-trn config.yaml — 숫자 파라미터의 단일 소스
+# 초기값이다. scenario는 P1 실현가능성 테스트로, trn_band는 P3 결과로 사람이 확정한다.
+# Claude는 이 파일의 scenario / trn_band / site 값을 스스로 바꾸지 않는다.
+
+seed: 0
+
+moon:
+  g: [0.0, 0.0, -1.62]        # m/s^2, L(ENU)
+  R_m: 1737400.0              # m
+
+site:                          # P3에서 확정. 조건: |lat0| < 60 deg(SLDEM 범위), D>=1 km 크레이터 밀도 높은 고지대
+  lat0_deg: TBD
+  lon0_deg: TBD
+  box_km: [220.0, 60.0]       # L 프레임 [East 폭, North 폭]. 원점이 중심. 공칭 궤적(서→동 접근)이 안에 들어가야 함
+
+camera:
+  W: 1024
+  H: 1024
+  fov_v_deg: 60.0
+  rate_hz: 1.0
+
+catalog:
+  D_min_m: 1000.0
+  p_min_px: 12
+
+trn_band:                      # P3 analyze_altitude_band 결과로 확정
+  h_min_m: 15000.0
+  h_max_m: 45000.0
+  n_min_in_view: 8
+
+imu:
+  rate_hz: 100.0
+  sigma_a: 0.005               # m/s^2, 샘플당 가속도계 백색잡음 (bias 없음 → IMU-only 구간 드리프트 과소평가, TODO(oct))
+
+scenario:                      # P1 테스트 "참값 상태 + ZEM/ZEV로 1 m 이내 착륙, |a_T| <= a_max" 통과해야 함
+  r0: [-150000.0, 0.0, 30000.0]   # m, L
+  v0: [900.0, 0.0, -40.0]         # m/s, L
+  T_f: 350.0                      # s
+  a_max: 6.0                      # m/s^2
+  t_go_min: 1.0                   # s
+
+ekf:
+  P0_diag: [1.0e6, 1.0e6, 1.0e6, 1.0e2, 1.0e2, 1.0e2]   # m^2 x3, (m/s)^2 x3
+  x0_error: [500.0, 500.0, 300.0, 5.0, 5.0, 3.0]        # 초기 추정 오차 1σ (시뮬에서 참값에 더함)
+  gate_chi2: 11.345                                     # χ²_3(0.99)
+  delay_compensation: true
+
+measurement:
+  mode: assumed                # assumed | calibrated (calibrated면 아래 file 사용)
+  file: results/measurement_model.json
+  sigma_xyz_m: [50.0, 50.0, 30.0]   # assumed 값. P5 보정 전까지 그림에 "assumed" 표기
+  fp_rate: 0.05                     # 오검출(잘못된 연관) 확률
+  fp_offset_m: 2000.0               # 오검출 시 무작위 방향 이상치 크기
+  n_min_inliers: 4
+
+tau:
+  mode: constant               # constant | empirical
+  constant_s: 0.5
+  empirical_file: results/tau_ort_cpu_int8.json
+  sweep_s: [0.05, 0.2, 0.5, 1.0, 2.0, 5.0]
+
+mc:
+  n_runs: 200
+  workers: 8
+
+detector:
+  model: yolo11n.pt            # YOLO 계열 nano. 계열 내 최신 nano로 교체 가능
+  imgsz: 1024
+  conf: 0.25
+  epochs: 100
+  batch: 16
+
+dataset:
+  n_frames: 1000
+  val_fraction: 0.2            # 궤적 구간 단위 분리(프레임 무작위 분리 금지)
+  sun_el_deg: [10.0, 60.0]
+  sun_az_deg: [0.0, 360.0]
+
+bench:
+  warmup: 50
+  n_iter: 1000
+  cpu_threads: 1
+  calib_images: 100
+
+unity:
+  host: 127.0.0.1
+  port: 5555
+  terrain_heightmap_res: 4097  # 2^n + 1
+  timeout_s: 10.0

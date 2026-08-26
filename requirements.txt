@@ -1,0 +1,17 @@
+# RTX 5060 Ti(sm_120)는 CUDA 12.8 이상 빌드가 필요하다. torch/torchvision을 먼저 설치:
+#   python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+# 그 다음: python -m pip install -r requirements.txt
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch>=2.7
+torchvision
+numpy
+scipy
+matplotlib
+pyyaml
+opencv-python
+rasterio
+ultralytics
+tensorrt
+onnxruntime
+openvino
+pytest
