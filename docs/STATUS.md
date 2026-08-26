@@ -1,5 +1,34 @@
 # STATUS
 
+## 자율 진행 세션 (2026-08-26 밤) — P2 완료, P3~P7 코드 선행
+
+사용자 부재 중 자동 진행. 실행이 막힌 단계는 코드·문서만 작성하고 blocker를 명시한다.
+
+- **P3 (코드 완료, 실행 대기)**: perception/camera.py(project/backproject, §2.2 완성),
+  perception/labeler.py(§2.3 포함 조건·클리핑), data/catalog.py(등장방형 변환 + Robbins CLI),
+  data/crop.py(DEM/텍스처 크롭·리샘플·Unity RAW), scripts/analyze_altitude_band.py.
+  테스트 15개(camera 4, labeler 5, catalog 4, tau_sampler 2(+skip 1)) 통과.
+  **blocker**: data/raw/ 원본(SLDEM 타일, WAC 모자이크, Robbins CSV)과 config site lat0/lon0 확정 —
+  사용자가 채우면 `data/crop.py → data/catalog.py → analyze_altitude_band.py` 순서로 실행.
+- **P4 (파일 작성 완료, GUI 대기)**: unity/Assets/Editor/SceneBuilder.cs("LunarTRN/Build Scene"),
+  unity/Assets/Scripts/RenderServer.cs(TCP, L→Unity 매핑, 길이 접두 PNG 프로토콜),
+  unity/client.py(재시도·타임아웃), scripts/check_projection.py(Hough 5크레이터 픽셀 오차),
+  unity/README.md(번호 절차 + 흔한 오류 7종). **blocker**: Unity Editor 수동 작업(README 절차).
+- **P5 (핵심 코드 완료, 나머지 대기)**: perception/associate.py(게이트·모호성 기각),
+  perception/pnp.py(RANSAC+LM 정밀화; 무잡음 <1e-3 m, 이상치 30% 복원 테스트 통과),
+  perception/detect.py(torch/ORT/TRT 래퍼), scripts/make_dataset.py·train.py·export_int8.py·
+  eval_det.py·calibrate_measurement.py 구현(Unity 서버 필요, 미실행).
+- **P6 (코드 완료, 미실행)**: sim/measurement.py UnityMeasurementModel(렌더→탐지→연관→PnP,
+  τ wallclock 실측), sim/loop.py measurement="unity" + run_closed_loop CLI --detector/--frames-dir.
+- **P7 (예비 실행 완료)**: scripts/aggregate_mc.py(명령 세트 출력 + 집계·그림).
+  assumed measurement stats, τ 9지점(스윕 6 + 실측 median 3) × 보상/미보상, n=200/조건 (총 3,600회):
+  보상 시 CEP 31.1~31.6 m로 τ∈[0.02, 5] s 전 구간 평탄. 미보상 시 τ 비례 증가 —
+  실측 τ 지점 기준: TensorRT INT8(20 ms) 33.5 m, ORT CPU INT8(179 ms) 89.9 m,
+  ORT CPU FP32(207 ms) 103.1 m; τ=5 s에선 1776 m.
+  → results/p7_mc_*.json(18), results/p7_mc.json, figs/p7_cep_vs_tau.png, p7_scatter_*(18).
+  P5 보정 후 calibrated 통계로 재실행 필요("preliminary" 표기 유지).
+- 테스트: `pytest -q` 47 passed (11.7 s)
+
 ## P2 · τ 벤치마크 (2026-08-26)
 
 - 완료: perception/bench_tau.py — ONNX export(yolo11n 사전학습, imgsz 1024, batch 1),

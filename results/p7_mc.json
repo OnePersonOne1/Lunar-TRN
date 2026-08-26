@@ -1,0 +1,429 @@
+{
+  "meta": {
+    "git_hash": "e9129cb206ceb04d8f9472e1a170715f5845c7bb",
+    "config_hash": "406f60d7ba50fdb9a1e9e7062fb4d4271c5ec2b48c8f552126d9abbb002354d8",
+    "timestamp": "2026-08-26T14:16:13.190991+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "subtitle": "preliminary, n=200; full MC scheduled Oct (assumed measurement stats)",
+  "conditions": [
+    {
+      "file": "results\\p7_mc_tau0.0200163_compoff.json",
+      "tau_s": 0.0200163,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 33.544152787399725,
+      "cep_ci95_m": [
+        31.152824515257368,
+        38.09089147318366
+      ],
+      "ellipse95": {
+        "center": [
+          -395.7928698317148,
+          65.62435628309453
+        ],
+        "semi_axes_m": [
+          4690.0423845148,
+          2307.961706851076
+        ],
+        "angle_rad": -3.1286173042817915
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.0200163_compon.json",
+      "tau_s": 0.0200163,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.580262114204608,
+      "cep_ci95_m": [
+        27.761621797179778,
+        34.372209881704876
+      ],
+      "ellipse95": {
+        "center": [
+          -386.1786877503822,
+          64.32478191268729
+        ],
+        "semi_axes_m": [
+          4692.453067682059,
+          2285.240027874322
+        ],
+        "angle_rad": -3.1316970540262203
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.05_compoff.json",
+      "tau_s": 0.05,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 38.59501224391502,
+      "cep_ci95_m": [
+        35.67389218210023,
+        42.98831133909652
+      ],
+      "ellipse95": {
+        "center": [
+          -402.88126848369734,
+          65.61171486794191
+        ],
+        "semi_axes_m": [
+          4688.472959775768,
+          2307.4564569090685
+        ],
+        "angle_rad": -3.128364089584285
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.05_compon.json",
+      "tau_s": 0.05,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.580267648219458,
+      "cep_ci95_m": [
+        27.761621791028944,
+        34.37220987946528
+      ],
+      "ellipse95": {
+        "center": [
+          -386.178956146017,
+          64.3238444755158
+        ],
+        "semi_axes_m": [
+          4692.443488375173,
+          2285.227135556414
+        ],
+        "angle_rad": -3.131694311600113
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.17939_compoff.json",
+      "tau_s": 0.17939,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 89.85346192663818,
+      "cep_ci95_m": [
+        87.23611796571745,
+        95.32919234067012
+      ],
+      "ellipse95": {
+        "center": [
+          -455.10947182688096,
+          65.4242204072303
+        ],
+        "semi_axes_m": [
+          4672.200423567016,
+          2303.4171107358875
+        ],
+        "angle_rad": -3.126037042818066
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.17939_compon.json",
+      "tau_s": 0.17939,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.580303630040866,
+      "cep_ci95_m": [
+        27.761621749492345,
+        34.37220986593164
+      ],
+      "ellipse95": {
+        "center": [
+          -386.1118094795548,
+          64.3155212991496
+        ],
+        "semi_axes_m": [
+          4691.929172170706,
+          2285.1542081787447
+        ],
+        "angle_rad": -3.131676960684886
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.206806_compoff.json",
+      "tau_s": 0.206806,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 103.06263264270765,
+      "cep_ci95_m": [
+        99.94724933596541,
+        108.33634148298944
+      ],
+      "ellipse95": {
+        "center": [
+          -467.5423962716465,
+          65.4973917130187
+        ],
+        "semi_axes_m": [
+          4669.486749271915,
+          2302.7581315757952
+        ],
+        "angle_rad": -3.1254841109338867
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.206806_compon.json",
+      "tau_s": 0.206806,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.580311940676545,
+      "cep_ci95_m": [
+        27.761621739771442,
+        34.372209862110466
+      ],
+      "ellipse95": {
+        "center": [
+          -386.10215163484145,
+          64.31467989614389
+        ],
+        "semi_axes_m": [
+          4691.849494018134,
+          2285.1377883300793
+        ],
+        "angle_rad": -3.1316643198634275
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.2_compoff.json",
+      "tau_s": 0.2,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 98.6447631348326,
+      "cep_ci95_m": [
+        95.82254202651663,
+        104.03420620809587
+      ],
+      "ellipse95": {
+        "center": [
+          -463.52503673976275,
+          65.42194449505254
+        ],
+        "semi_axes_m": [
+          4670.030990321784,
+          2302.939588619797
+        ],
+        "angle_rad": -3.1257543908692242
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.2_compon.json",
+      "tau_s": 0.2,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.580309168140516,
+      "cep_ci95_m": [
+        27.761621741957967,
+        34.37220986453784
+      ],
+      "ellipse95": {
+        "center": [
+          -386.11275998184936,
+          64.31457901865186
+        ],
+        "semi_axes_m": [
+          4691.919292517307,
+          2285.1412985122656
+        ],
+        "angle_rad": -3.1316742018095423
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.5_compoff.json",
+      "tau_s": 0.5,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 229.9720294249624,
+      "cep_ci95_m": [
+        224.8331057149832,
+        234.47685940747505
+      ],
+      "ellipse95": {
+        "center": [
+          -590.6250753463413,
+          62.97846200643774
+        ],
+        "semi_axes_m": [
+          4627.3169932607025,
+          2294.2561653883295
+        ],
+        "angle_rad": -3.118046029304388
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau0.5_compon.json",
+      "tau_s": 0.5,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.41520439705424,
+      "cep_ci95_m": [
+        27.68365789958562,
+        34.16352571173189
+      ],
+      "ellipse95": {
+        "center": [
+          -386.03594605337656,
+          64.35745974080675
+        ],
+        "semi_axes_m": [
+          4690.659711043568,
+          2284.949742194692
+        ],
+        "angle_rad": -3.1316043048149824
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau1_compoff.json",
+      "tau_s": 1.0,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 437.7640712618598,
+      "cep_ci95_m": [
+        430.5285190006956,
+        441.8051659470497
+      ],
+      "ellipse95": {
+        "center": [
+          -774.8641152994287,
+          60.20773280587475
+        ],
+        "semi_axes_m": [
+          4478.046391901004,
+          2273.1008125110393
+        ],
+        "angle_rad": -3.1005643581436786
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau1_compon.json",
+      "tau_s": 1.0,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.415356850557252,
+      "cep_ci95_m": [
+        27.683657932581667,
+        34.16252358018592
+      ],
+      "ellipse95": {
+        "center": [
+          -385.8837968106262,
+          64.34272467353198
+        ],
+        "semi_axes_m": [
+          4688.755858547783,
+          2284.661622280599
+        ],
+        "angle_rad": -3.1314998045975972
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau2_compoff.json",
+      "tau_s": 2.0,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 834.1628325484695,
+      "cep_ci95_m": [
+        829.2608861971537,
+        839.8160954713733
+      ],
+      "ellipse95": {
+        "center": [
+          -987.1195381973171,
+          122.0119164129206
+        ],
+        "semi_axes_m": [
+          3394.8839497442673,
+          2254.5934558316007
+        ],
+        "angle_rad": -3.0656368339898172
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau2_compon.json",
+      "tau_s": 2.0,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.415664260585114,
+      "cep_ci95_m": [
+        27.683657998777043,
+        34.16050529900228
+      ],
+      "ellipse95": {
+        "center": [
+          -385.5525800244511,
+          64.32426823751376
+        ],
+        "semi_axes_m": [
+          4684.770624918764,
+          2284.151655854464
+        ],
+        "angle_rad": -3.1313276664132803
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau5_compoff.json",
+      "tau_s": 5.0,
+      "delay_comp": false,
+      "n_runs": 200,
+      "cep_m": 1776.0314719172452,
+      "cep_ci95_m": [
+        1721.5723672267752,
+        1887.221704335042
+      ],
+      "ellipse95": {
+        "center": [
+          836.774687709469,
+          68.70401210182261
+        ],
+        "semi_axes_m": [
+          11368.614942799426,
+          5832.879000147421
+        ],
+        "angle_rad": -3.067997967666021
+      },
+      "assumed_measurement_stats": true
+    },
+    {
+      "file": "results\\p7_mc_tau5_compon.json",
+      "tau_s": 5.0,
+      "delay_comp": true,
+      "n_runs": 200,
+      "cep_m": 31.10737692754099,
+      "cep_ci95_m": [
+        27.683658213393713,
+        34.15433654198469
+      ],
+      "ellipse95": {
+        "center": [
+          -384.53201038330144,
+          64.30162081828509
+        ],
+        "semi_axes_m": [
+          4672.867985796424,
+          2282.488892983772
+        ],
+        "angle_rad": -3.1307566823005057
+      },
+      "assumed_measurement_stats": true
+    }
+  ]
+}
