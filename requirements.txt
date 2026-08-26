@@ -2,6 +2,7 @@
 #   python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 # 그 다음: python -m pip install -r requirements.txt
 --extra-index-url https://download.pytorch.org/whl/cu128
+--extra-index-url https://pypi.nvidia.com
 torch>=2.7
 torchvision
 numpy
@@ -11,7 +12,10 @@ pyyaml
 opencv-python
 rasterio
 ultralytics
-tensorrt
+# tensorrt: PyPI의 tensorrt 메타패키지(sdist)는 빌드 격리 안에서 1.6 GB 휠을 자체 다운로더로 받다가
+# 전송이 멈추는 일이 있다. 멈추면 pypi.nvidia.com에서 tensorrt_cu12_bindings / tensorrt_cu12_libs
+# 휠을 curl로 직접 받아 설치한 뒤: pip install tensorrt-cu12 --no-deps --extra-index-url https://pypi.nvidia.com
+tensorrt-cu12
 onnxruntime
 openvino
 pytest
