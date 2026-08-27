@@ -114,6 +114,15 @@ Unity 서버가 config unity.port에 떠 있다. scripts/check_projection.py를 
 이번 세션은 P7(예비 MC)이다. 계산은 내가 tmux에서 돌린다.
 - scripts/run_mc.py 실행 명령 세트를 출력해라: measurement="stat" + results/measurement_model.json(보정 통계, FP32/INT8 각각), τ ∈ config tau.sweep_s ∪ {실측 median: TensorRT INT8, ORT CPU FP32, ORT CPU INT8}, delay_comp ∈ {true, false}, n = config mc.n_runs. 조건별 results/p7_mc_{cond}.json.
 - 집계 스크립트(scripts/aggregate_mc.py): results/p7_mc.json(조건별 CEP, 95% 타원, 시행 수, 부트스트랩 95% CI), figs/p7_cep_vs_tau.png(실측 τ 지점을 마커로 표시, 미보상 곡선 병기), figs/p7_scatter_{cond}.png.
+- SLIM 정합성 비교(site가 SLIM(13.3°S, 25.2°E)일 때): results/p7_slim_comparison.json —
+  우리 시뮬의 CEP·고도별 EKF 위치 오차를 SLIM 공개 비행 결과와 나란히 표로.
+  외부 기준값(출처 명기: "Vision-based navigation and obstacle detection flight results in
+  SLIM lunar landing", Acta Astronautica Vol.226 (2025)): VBN 총 14회 전부 성공(CST1/2, VLD1/2),
+  고도 500 m 수평 항법 오차 <1 m, 고도 50 m 시점 착륙 정밀도 ~10 m (목표 100 m).
+  주의: SLIM 실제 착지점 이탈 ~55 m는 엔진 노즐 탈락(추진 고장) 영향이므로 비교 기준으로
+  쓰지 않는다. 주장 수위는 "validation"이 아니라 "실제 임무의 공개 비행 결과와 자리수·경향이
+  일관(plausibility)"으로 제한한다 — 센서 구성(지도 매칭+레이더+LRF vs YOLO+PnP)과
+  자유도(6-DOF vs 3-DOF)가 다르다.
 - 모든 그림 제목에 "preliminary, n=…; full MC scheduled Oct".
 끝: STATUS.md, 커밋 "P7: preliminary MC".
 ```
