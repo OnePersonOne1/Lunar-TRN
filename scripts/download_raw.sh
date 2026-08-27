@@ -4,7 +4,7 @@ set -u
 cd "$(dirname "$0")/.."
 mkdir -p data/raw
 BASE_SLDEM="https://imbrium.mit.edu/DATA/SLDEM2015/TILES/FLOAT_IMG"
-BASE_WAC="https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/WAC_GLOBAL"
+BASE_WAC="https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/BROWSE/WAC_GLOBAL"
 files=(
   "$BASE_SLDEM/SLDEM2015_512_30S_00S_000_045_FLOAT.LBL"
   "$BASE_SLDEM/SLDEM2015_512_30S_00S_000_045_FLOAT.IMG"

@@ -31,19 +31,36 @@ def _grid_latlon(cfg: dict, nx: int, ny: int) -> tuple[np.ndarray, np.ndarray, n
 
 
 def _sample_raster(paths: list[str], lat: np.ndarray, lon: np.ndarray, scale: float) -> np.ndarray:
-    """여러 타일을 병합해 (lat, lon) 격자에서 샘플링 (이중선형)."""
+    """여러 타일을 병합해 (lat, lon) 격자에서 샘플링 (이중선형).
+
+    SLDEM FLOAT_IMG(PDS)·WAC GeoTIFF는 등장방형 투영 미터 좌표라
+    래스터 축을 CRS 기준으로 경위도 deg로 변환한 뒤 보간한다.
+    """
     import rasterio
     from rasterio.merge import merge
+    from rasterio.warp import transform as crs_transform
     from scipy.interpolate import RegularGridInterpolator
 
     datasets = [rasterio.open(p) for p in paths]
-    mosaic, transform = merge(datasets)
-    band = mosaic[0].astype(np.float64) * scale
+    if len(datasets) == 1:
+        # merge()는 PDS의 float32 범위 밖 nodata(-3.4e38)를 다루지 못해 0으로 채운다 → 단일 파일은 직접 읽기
+        band = datasets[0].read(1).astype(np.float64) * scale
+        transform = datasets[0].transform
+    else:
+        mosaic, transform = merge(datasets)
+        band = mosaic[0].astype(np.float64) * scale
     ny_r, nx_r = band.shape
     cols = np.arange(nx_r)
     rows = np.arange(ny_r)
-    lon_r = transform.c + transform.a * (cols + 0.5)
-    lat_r = transform.f + transform.e * (rows + 0.5)  # e < 0: 위→아래 감소
+    xs = transform.c + transform.a * (cols + 0.5)
+    ys = transform.f + transform.e * (rows + 0.5)  # e < 0: 위→아래 감소
+    crs = datasets[0].crs
+    if crs is not None and crs.is_projected:
+        dst = rasterio.crs.CRS.from_proj4("+proj=longlat +R=1737400 +no_defs")
+        lon_r = np.asarray(crs_transform(crs, dst, xs, np.zeros_like(xs))[0])
+        lat_r = np.asarray(crs_transform(crs, dst, np.zeros_like(ys), ys)[1])
+    else:
+        lon_r, lat_r = xs, ys
     interp = RegularGridInterpolator(
         (lat_r[::-1], lon_r), band[::-1, :], bounds_error=False, fill_value=np.nan
     )

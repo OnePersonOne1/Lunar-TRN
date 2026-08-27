@@ -1,5 +1,25 @@
 # STATUS
 
+## P3 실행 · site 후보 비교 (2026-08-27)
+
+- 원본 데이터 확보(data/raw, 총 3.7 GB): SLDEM2015 512ppd FLOAT 타일 2장(0–30S, 30–60S / 0–45E),
+  WAC E300S0450 GeoTIFF(474 MB, EXTRAS/BROWSE 경로 — DATA/BDR 밑 .TIF는 404),
+  Robbins PDS4 번들(astropedia 다운 서버 사망 → CKAN 미러). scripts/download_raw.sh로 재현.
+- crop.py 수정 2건: ① SLDEM(PDS)·WAC(GeoTIFF)는 등장방형 투영 미터 좌표 →
+  CRS 인식해 경위도 변환 후 보간 ② rasterio merge()가 PDS nodata(-3.4e38)를 못 다뤄
+  전부 0을 반환 → 단일 파일은 직접 read. SLDEM 고도는 km 단위(--dem-scale 1000).
+- 후보 비교(scripts/p3_frontend.sh, config_site_{slim,highlands}.yaml):
+  | | SLIM(−13.3, 25.2) | 남부고지대(−42, 14) |
+  |---|---|---|
+  | 박스 내 D≥1km | 260개 | 642개 |
+  | n≥8 통과 밴드 | 19.7–28.0 km | 12.9–27.6 km |
+  | 시야 내 최대 | 41개 | 70개 |
+  둘 다 n_min 8 통과. 정합 그림(figs/p3_registration_*.png) 양호.
+- 산출물: data/processed/{slim,highlands}/(dem_L.npz, texture_L.png, heightmap.raw, catalog_L.csv),
+  results/p3_altitude_band_{slim,highlands}.json, figs/p3_{registration,altitude_band}_*.png
+- 대기: 사용자 site 확정(1순위 SLIM 통과 확인됨) + config.yaml site/trn_band 반영(사용자 항목),
+  이후 data/processed/ 최종본 생성 → P4 Unity 수동 절차.
+
 ## P2 추가 · TRT FP16 벤치 (2026-08-27)
 
 - perception/bench_tau.py에 trt_fp16 백엔드와 `--backends` 부분 실행 옵션 추가.
