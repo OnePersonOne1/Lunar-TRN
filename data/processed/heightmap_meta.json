@@ -1,14 +1,14 @@
 {
   "resolution": 4097,
   "size_m": {
-    "east": 220000.0,
+    "east": 340000.0,
     "north": 60000.0,
-    "padded_square": 220000.0
+    "padded_square": 340000.0
   },
-  "used_rows": 1117,
+  "used_rows": 723,
   "used_cols": 4097,
-  "z_min_m": -3791.1640160958273,
-  "z_max_m": 3674.4515390571946,
+  "z_min_m": -3789.138678458769,
+  "z_max_m": 3994.2087314477176,
   "origin": "L 원점(착륙 목표점)이 박스 중심, heightmap 픽셀 (used_cols/2, used_rows/2)",
   "byte_order": "little-endian uint16",
   "row0": "north"
