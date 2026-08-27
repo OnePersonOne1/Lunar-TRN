@@ -1,0 +1,109 @@
+# config.yaml 사본 + site 후보 'slim' (lat0=-13.3, lon0=25.2). P3 후보 비교용.
+seed: 0
+moon:
+  g:
+  - 0.0
+  - 0.0
+  - -1.62
+  R_m: 1737400.0
+site:
+  lat0_deg: -13.3
+  lon0_deg: 25.2
+  box_km:
+  - 220.0
+  - 60.0
+camera:
+  W: 1024
+  H: 1024
+  fov_v_deg: 60.0
+  rate_hz: 1.0
+catalog:
+  D_min_m: 1000.0
+  p_min_px: 12
+trn_band:
+  h_min_m: 15000.0
+  h_max_m: 45000.0
+  n_min_in_view: 8
+imu:
+  rate_hz: 100.0
+  sigma_a: 0.005
+scenario:
+  r0:
+  - -150000.0
+  - 0.0
+  - 30000.0
+  v0:
+  - 900.0
+  - 0.0
+  - -40.0
+  T_f: 350.0
+  a_max: 6.0
+  t_go_min: 1.0
+ekf:
+  P0_diag:
+  - 1.0e6
+  - 1.0e6
+  - 1.0e6
+  - 1.0e2
+  - 1.0e2
+  - 1.0e2
+  x0_error:
+  - 500.0
+  - 500.0
+  - 300.0
+  - 5.0
+  - 5.0
+  - 3.0
+  gate_chi2: 11.345
+  delay_compensation: true
+measurement:
+  mode: assumed
+  file: results/measurement_model.json
+  sigma_xyz_m:
+  - 50.0
+  - 50.0
+  - 30.0
+  fp_rate: 0.05
+  fp_offset_m: 2000.0
+  n_min_inliers: 4
+  assoc_gate_px: 50.0
+tau:
+  mode: constant
+  constant_s: 0.5
+  empirical_file: results/tau_ort_cpu_int8.json
+  sweep_s:
+  - 0.05
+  - 0.2
+  - 0.5
+  - 1.0
+  - 2.0
+  - 5.0
+mc:
+  n_runs: 200
+  workers: 8
+  bootstrap_n: 1000
+detector:
+  model: yolo11n.pt
+  imgsz: 1024
+  conf: 0.25
+  epochs: 100
+  batch: 16
+dataset:
+  n_frames: 1000
+  val_fraction: 0.2
+  sun_el_deg:
+  - 10.0
+  - 60.0
+  sun_az_deg:
+  - 0.0
+  - 360.0
+bench:
+  warmup: 50
+  n_iter: 1000
+  cpu_threads: 1
+  calib_images: 100
+unity:
+  host: 127.0.0.1
+  port: 5555
+  terrain_heightmap_res: 4097
+  timeout_s: 10.0
