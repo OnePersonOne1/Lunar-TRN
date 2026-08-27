@@ -1,4 +1,4 @@
-# config.yaml 사본 + site 후보 'slim' (lat0=-13.3, lon0=25.2). P3 후보 비교용.
+# config.yaml 사본 + site 후보 'slim' (lat0=-13.316, lon0=25.251, SLIM 착륙점). P3 후보 비교용.
 seed: 0
 moon:
   g:
@@ -7,8 +7,8 @@ moon:
   - -1.62
   R_m: 1737400.0
 site:
-  lat0_deg: -13.3
-  lon0_deg: 25.2
+  lat0_deg: -13.316
+  lon0_deg: 25.251
   box_km:
   - 220.0
   - 60.0

@@ -8,9 +8,9 @@ moon:
   g: [0.0, 0.0, -1.62]        # m/s^2, L(ENU)
   R_m: 1737400.0              # m
 
-site:                          # P3에서 확정. 조건: |lat0| < 60 deg(SLDEM 범위), D>=1 km 크레이터 밀도 높은 고지대
-  lat0_deg: TBD
-  lon0_deg: TBD
+site:                          # 2026-08-27 사용자 확정: SLIM 착륙점(LROC 측정 13.3160S, 25.2510E) = L 원점
+  lat0_deg: -13.3160
+  lon0_deg: 25.2510
   box_km: [220.0, 60.0]       # L 프레임 [East 폭, North 폭]. 원점이 중심. 공칭 궤적(서→동 접근)이 안에 들어가야 함
 
 camera:
@@ -23,9 +23,9 @@ catalog:
   D_min_m: 1000.0
   p_min_px: 12
 
-trn_band:                      # P3 analyze_altitude_band 결과로 확정
-  h_min_m: 15000.0
-  h_max_m: 45000.0
+trn_band:                      # 2026-08-27 사용자 확정: p3_altitude_band 제안(16472~27954 m)의 안쪽 반올림
+  h_min_m: 16500.0
+  h_max_m: 27900.0
   n_min_in_view: 8
 
 imu:

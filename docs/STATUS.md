@@ -1,5 +1,15 @@
 # STATUS
 
+## P3 완료 · site 확정 (2026-08-27)
+
+- 사용자 확정: site = SLIM 착륙점(LROC 측정 13.3160S, 25.2510E) = L 원점.
+  config.yaml site/trn_band 반영(trn_band 16500–27900 m = 제안 16472–27954의 안쪽 반올림).
+- 최종 산출(data/processed/): dem_L.npz(dz −3792~+3673 m), texture_L.png, heightmap.raw,
+  catalog_L.csv 263개. results/p3_altitude_band.json, figs/p3_registration.png, p3_altitude_band.png.
+- P7 프롬프트에 SLIM 공개 비행결과(Acta Astronautica Vol.226) 정합성 비교 명시 —
+  L 원점이 SLIM 착륙점과 동일하므로 비교표 성립.
+- 다음: P4 Unity Editor 수동 작업(unity/README.md, 9/3 정오 시한)이 크리티컬 패스.
+
 ## P3 실행 · site 후보 비교 (2026-08-27)
 
 - 원본 데이터 확보(data/raw, 총 3.7 GB): SLDEM2015 512ppd FLOAT 타일 2장(0–30S, 30–60S / 0–45E),
