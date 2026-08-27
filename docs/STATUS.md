@@ -1,5 +1,20 @@
 # STATUS
 
+## P2 추가 · TRT FP16 벤치 (2026-08-27)
+
+- perception/bench_tau.py에 trt_fp16 백엔드와 `--backends` 부분 실행 옵션 추가.
+  TRT 11은 BuilderFlag.FP16이 제거되어(strongly typed) ultralytics `half=True`로
+  FP16 ONNX(yolo11n_half.onnx)를 내보내 엔진을 빌드하는 경로로 구현.
+- 결과(동일 세션 재측정): TRT FP32 median 20.01 ms / p95 21.76 ms,
+  **TRT FP16 median 22.18 ms / p95 26.18 ms — FP32보다 오히려 느림.**
+  sanity IoU(FP16 vs FP32) 0.997, 72/72 박스 매칭 — 정확도 손실은 없음.
+- 해석: τ_det에서 GPU 행렬연산 비중이 작고 전처리(CPU letterbox)+NMS+복사·동기화가
+  지배적. FP32 엔진은 이미 TF32 텐서코어를 쓰므로 FP16 이득이 없고, FP16 입출력
+  캐스트 오버헤드만 추가됨. → 슬라이드에는 "GPU에서는 정밀도 축소가 τ를 더 줄이지
+  못한다(병목은 전·후처리)"의 근거로 사용 가능. 온보드 CPU/NPU 환경(ORT)에서는
+  INT8이 유효(207→179 ms)하다는 기존 결론 유지.
+- 산출물: results/tau_trt_fp16.json, figs/p2_tau_hist.png(5패널), logs/p2_fp16_bench.log
+
 ## 자율 진행 세션 (2026-08-26 밤) — P2 완료, P3~P7 코드 선행
 
 사용자 부재 중 자동 진행. 실행이 막힌 단계는 코드·문서만 작성하고 blocker를 명시한다.

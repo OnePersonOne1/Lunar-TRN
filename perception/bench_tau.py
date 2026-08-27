@@ -149,11 +149,12 @@ class TrtRunner:
 
 # ---------------------------------------------------------------- TensorRT 빌드
 
-def build_trt_engine(onnx_path: str, engine_path: str) -> str:
+def build_trt_engine(onnx_path: str, engine_path: str, fp16: bool = False) -> str:
     """ONNX → TRT 엔진 직렬화. INT8은 QDQ 양자화 ONNX를 넘기면 explicit quantization으로 빌드된다.
 
     (TensorRT 11에서 implicit INT8 캘리브레이션 API(BuilderFlag.INT8)가 제거되어
     ORT static 양자화와 같은 QDQ ONNX를 공유하는 explicit 경로만 지원한다.)
+    fp16=True면 FP32 ONNX에서 BuilderFlag.FP16으로 half-precision 커널을 허용한다.
     """
     import tensorrt as trt
 
@@ -170,10 +171,15 @@ def build_trt_engine(onnx_path: str, engine_path: str) -> str:
         raise RuntimeError(f"ONNX 파싱 실패: {errs}")
     config = builder.create_builder_config()
     config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 2 << 30)
+    if fp16 and hasattr(trt.BuilderFlag, "FP16"):
+        # TRT <= 10. TRT 11은 플래그가 제거되어 FP16 ONNX(모델 자료형)로 정밀도를 지정한다.
+        config.set_flag(trt.BuilderFlag.FP16)
     serialized = builder.build_serialized_network(network, config)
     if serialized is None:
         raise RuntimeError("TensorRT 엔진 빌드 실패")
     Path(engine_path).write_bytes(serialized)
+    if fp16:
+        return "fp16"
     return "explicit_qdq" if "int8" in Path(onnx_path).stem else "fp32"
 
 
@@ -349,8 +355,14 @@ def make_hist_fig(result_files: dict[str, Path], fig_path: Path) -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-    for ax, (label, path) in zip(axes.ravel(), result_files.items()):
+    n = len(result_files)
+    n_cols = 2
+    n_rows = (n + n_cols - 1) // n_cols
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 4 * n_rows))
+    axes = np.atleast_1d(axes).ravel()
+    for ax in axes[n:]:
+        ax.axis("off")
+    for ax, (label, path) in zip(axes, result_files.items()):
         if not path.exists():
             ax.set_title(f"{label} (missing)")
             continue
@@ -380,6 +392,8 @@ def main() -> None:
     ap.add_argument("--fig", default="figs/p2_tau_hist.png")
     ap.add_argument("--n-sanity", type=int, default=20)
     ap.add_argument("--model", default=None, help="config detector.model 대신 쓸 가중치 (P5 학습 모델)")
+    ap.add_argument("--backends", default="all",
+                    help="쉼표 구분 부분 실행 (trt_fp32,trt_fp16,trt_int8,ort_cpu_fp32,ort_cpu_int8). all이면 전부")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fh:
@@ -403,16 +417,44 @@ def main() -> None:
 
     files = {
         "trt_fp32": out_dir / "tau_trt_fp32.json",
+        "trt_fp16": out_dir / "tau_trt_fp16.json",
         "trt_int8": out_dir / "tau_trt_int8.json",
         "ort_cpu_fp32": out_dir / "tau_ort_cpu_fp32.json",
         "ort_cpu_int8": out_dir / "tau_ort_cpu_int8.json",
     }
+    selected = set(files) if args.backends == "all" else set(args.backends.split(","))
+    unknown = selected - set(files)
+    if unknown:
+        raise SystemExit(f"--backends에 알 수 없는 키: {sorted(unknown)}")
     runners: dict[str, object] = {}
 
     # --- INT8 static 양자화: 백엔드별 변형 (ORT CPU는 U8S8, TRT explicit는 대칭 S8S8)
     stem = str(Path(onnx_path).with_suffix(""))
+
+    # --- FP16 ONNX (TRT 11은 빌더 플래그 대신 모델 자료형으로 정밀도를 지정)
+    half_onnx = None
+    if "trt_fp16" in selected:
+        try:
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError("FP16 ONNX export는 CUDA 디바이스가 필요하다")
+            p = model.export(format="onnx", imgsz=imgsz, batch=1, dynamic=False,
+                             half=True, device=0)
+            half_onnx = f"{stem}_half.onnx"
+            Path(half_onnx).unlink(missing_ok=True)
+            Path(p).rename(half_onnx)
+            # half export가 FP32 ONNX를 같은 이름으로 덮어썼으므로 복원
+            onnx_path = model.export(format="onnx", imgsz=imgsz, batch=1, dynamic=False,
+                                     device="cpu")
+            print(f"fp16 onnx: {half_onnx}", flush=True)
+        except Exception as exc:
+            print(f"FP16 ONNX export 실패: {type(exc).__name__}: {exc}", flush=True)
     int8_variants = {}
-    for key, variant in (("ort", "u8s8"), ("trt", "s8s8_sym")):
+    int8_targets = [("ort", "u8s8"), ("trt", "s8s8_sym")]
+    for key, variant in int8_targets:
+        if f"{key}_int8" not in selected and f"{key}_cpu_int8" not in selected:
+            continue
         path = f"{stem}_int8_{key}.onnx"
         patterns = ("/model.23/",) if key == "ort" else ("/model.23/", "/model.10/")
         try:
@@ -423,38 +465,45 @@ def main() -> None:
             print(f"INT8 양자화[{variant}] 실패: {type(exc).__name__}: {exc}", flush=True)
 
     # --- TensorRT
-    for prec, src in (("fp32", onnx_path), ("int8", int8_variants.get("trt"))):
-        if src is None:
+    for prec, src, fp16 in (("fp32", onnx_path, False), ("fp16", half_onnx, True),
+                            ("int8", int8_variants.get("trt"), False)):
+        if f"trt_{prec}" not in selected or src is None:
             continue
         try:
             eng = f"{stem}_{prec}.engine"
-            method = build_trt_engine(src, eng)
+            method = build_trt_engine(src, eng, fp16=fp16)
             print(f"engine[{prec}]: {eng} ({method})", flush=True)
             runners[f"trt_{prec}"] = TrtRunner(eng, imgsz, conf)
         except Exception as exc:
             print(f"TensorRT[{prec}] 실패: {type(exc).__name__}: {exc}", flush=True)
 
     # --- ORT CPU
-    runners["ort_cpu_fp32"] = OrtRunner(onnx_path, threads, imgsz, conf)
-    if "ort" in int8_variants:
+    if "ort_cpu_fp32" in selected:
+        runners["ort_cpu_fp32"] = OrtRunner(onnx_path, threads, imgsz, conf)
+    if "ort_cpu_int8" in selected and "ort" in int8_variants:
         runners["ort_cpu_int8"] = OrtRunner(int8_variants["ort"], threads, imgsz, conf)
 
-    # --- sanity (INT8 vs FP32)
+    # --- sanity (감정밀도 vs FP32)
     sanity: dict[str, dict] = {}
-    for backend in ("trt", "ort_cpu"):
-        a, b = runners.get(f"{backend}_fp32"), runners.get(f"{backend}_int8")
+    sanity_pairs = {
+        "trt": ("trt_fp32", "trt_int8"),
+        "ort_cpu": ("ort_cpu_fp32", "ort_cpu_int8"),
+        "trt_fp16": ("trt_fp32", "trt_fp16"),
+    }
+    for name, (ka, kb) in sanity_pairs.items():
+        a, b = runners.get(ka), runners.get(kb)
         if a is not None and b is not None:
-            sanity[backend] = sanity_iou(a, b, bench_imgs)
-            print(f"sanity[{backend}]: {sanity[backend]}", flush=True)
+            sanity[name] = sanity_iou(a, b, bench_imgs)
+            print(f"sanity[{name}]: {sanity[name]}", flush=True)
 
     # --- 벤치마크
+    sanity_key = {"trt_int8": "trt", "ort_cpu_int8": "ort_cpu", "trt_fp16": "trt_fp16"}
     for key, runner in runners.items():
-        backend = "trt" if key.startswith("trt") else "ort_cpu"
         samples = bench(runner, bench_imgs, warmup, n_iter)
         meta = bench_meta(cfg, args.config, {
             "backend": key, "calib": calib_source, "seed": args.seed,
             "int8_variant": {"trt_int8": "s8s8_sym", "ort_cpu_int8": "u8s8"}.get(key),
-            "sanity_int8_vs_fp32": sanity.get(backend),
+            "sanity_vs_fp32": sanity.get(sanity_key.get(key, "")),
         })
         save_tau_json(files[key], samples, meta)
 
