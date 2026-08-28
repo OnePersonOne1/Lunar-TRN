@@ -97,8 +97,8 @@ public static class SceneBuilder
 
         // --- Terrain 배치: L 원점(사용 영역 중심, z=0 고도)이 월드 (0,0,0)
         // 재실행 시 중복 생성 방지 (Unity 오브젝트는 ??/?. 금지 — 파괴된 객체가 가짜 null이라 == null로만 검사)
-        var oldTerrain = GameObject.Find("LunarTerrain");
-        if (oldTerrain != null) UnityEngine.Object.DestroyImmediate(oldTerrain);
+        for (var old = GameObject.Find("LunarTerrain"); old != null; old = GameObject.Find("LunarTerrain"))
+            UnityEngine.Object.DestroyImmediate(old);
         var terrainGo = Terrain.CreateTerrainGameObject(td);
         terrainGo.name = "LunarTerrain";
         terrainGo.transform.position = new Vector3(
