@@ -1,5 +1,22 @@
 # STATUS
 
+## P4 완료 · Unity 렌더 서버·투영 정합 검증 통과 (2026-08-28)
+
+- Unity 6.5(6000.5.10f1), BIRP, 프로젝트 루트 = unity/ (Hub가 만든 하위 폴더에서
+  Packages/ProjectSettings 이동으로 전환). 파생 에셋(LunarTerrainData 34.6 MB 등)은 gitignore.
+- 세션 중 잡은 버그: ① SceneBuilder의 Unity 가짜 null `??` 패턴 → Light 예외 (명시적 == null로 교체)
+  ② 텍스처를 메모리 Texture2D로만 로드 → 도메인 리로드 시 체크무늬 (에셋 임포트로 영구화, 4096 설정)
+  ③ 원거리 base map 저해상도 + 주변광 과다로 뿌연 렌더 (RenderServer ConfigureQuality:
+  basemapDistance 500 km, 주변광·안개 제거, 그림자 60 km, 배경 검정)
+- **정합 검증 통과**: check_projection을 Hough → WAC 텍스처 템플릿 매칭(NCC, 고역 통과,
+  크레이터별 카탈로그 고도 평면으로 시차 보정)으로 교체. 밴드 중간 고도 공식 포즈
+  평균 오차 1.5 px, 추가 3개 포즈 0.9~2.2 px — 기준 5 px 통과 (반전·오프셋·스케일 오류 없음,
+  전역 위상상관 (1,−1) px). → results/p4_projection_check.json, figs/p4_projection_check.png
+- RenderServer previewOnScreen: Play 중 Game 뷰에 마지막 렌더 프레임 표시(검수용).
+- 다음: P5 — Unity 서버 Play 상태에서 make_dataset → train(사용자 GPU) → export_int8 →
+  eval_det → calibrate_measurement. 탐지 overlay 검수는 P5 figs/p5_overlay_*.png와
+  P6 --frames-dir 프레임으로 가능.
+
 ## 계획 추가 · 미학습 지역 일반화 test (2026-08-28 사용자 지시)
 
 - 배경: 학습·검증·폐루프가 전부 SLIM 박스 한 곳 → "특정 지점 과적합" 질문에 대비.
