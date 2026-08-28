@@ -20,10 +20,16 @@ from sim.mc import result_meta  # noqa: E402
 
 
 def measured_tau_medians() -> dict[str, float]:
-    """P2/P5 벤치 산출물에서 실측 τ median을 모은다."""
+    """P2/P5 벤치 산출물에서 실측 τ median을 모은다 (n 3종 + s CPU INT8 비교점)."""
+    paths = {
+        "trt_int8": "results/tau_trt_int8.json",
+        "ort_cpu_fp32": "results/tau_ort_cpu_fp32.json",
+        "ort_cpu_int8": "results/tau_ort_cpu_int8.json",
+        "s_ort_cpu_int8": "results/s/tau_ort_cpu_int8.json",
+    }
     out = {}
-    for key in ("trt_int8", "ort_cpu_fp32", "ort_cpu_int8"):
-        p = Path(f"results/tau_{key}.json")
+    for key, path in paths.items():
+        p = Path(path)
         if p.exists():
             out[key] = float(json.loads(p.read_text(encoding="utf-8"))["median_s"])
     return out
@@ -107,7 +113,8 @@ def main() -> None:
         yerr = np.array([[c["cep_m"] - c["cep_ci95_m"][0] for c in sel],
                          [c["cep_ci95_m"][1] - c["cep_m"] for c in sel]])
         ax.errorbar(taus, ceps, yerr=yerr, marker=marker, capsize=3, label=label)
-    colors = {"trt_int8": "tab:green", "ort_cpu_fp32": "tab:red", "ort_cpu_int8": "tab:purple"}
+    colors = {"trt_int8": "tab:green", "ort_cpu_fp32": "tab:red", "ort_cpu_int8": "tab:purple",
+              "s_ort_cpu_int8": "tab:brown"}
     for key, tau in measured_tau_medians().items():
         ax.axvline(tau, linestyle=":", color=colors.get(key, "gray"), alpha=0.8,
                    label=f"measured {key} ({tau*1e3:.0f} ms)")
