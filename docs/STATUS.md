@@ -1,5 +1,31 @@
 # STATUS
 
+## 밤샘 자율 세션 · P5~P7 (2026-08-29 새벽)
+
+- **P5 완료**: 데이터셋 1000프레임(888/112 궤적 분리, 평균 36.5 라벨/프레임) →
+  yolo11n 100ep 학습(mAP50-95 0.994/INT8 0.980, R≈1.0) → INT8 양자화(실렌더 캘리브레이션,
+  TRT 엔진 박스 수 fp32와 일치) → 측정 보정 results/measurement_model.json.
+- **비교용 yolo11s도 학습**: mAP50-95 0.995/INT8 0.986 — n 대비 +0.001~0.006, "아는 지도"
+  도메인에선 n 포화. 결론은 τ 벤치(아침) 후 CEP 축으로 확정.
+- **측정 보정 방법론 확정(P6 디버그의 산물)**: R = 0 기준 로버스트 σ(3σ 클리핑 RMS).
+  근거: EKF에 bias 상태가 없어 구간·태양각 따라 이동하는 계통 편향(±50~120 m,
+  z ~50 m)이 혁신에 남는데, 중앙값 기준 σ(z 26 m)로는 χ² 게이트가 연쇄 기각
+  (수락 21/125, 착륙 3584 m). 0 기준 σ [97.6, 90.2, 33.6] m로 수락 89/143,
+  착륙 138.9 m. 대형 실패는 fp_rate_est 0.127·offset ~470 m로 분리 보고(게이트 담당).
+  저고도(<19 km) 측정 품질 급락(σ_y ~959 m)은 게이트가 걸러냄 — trn_band 하한 상향 검토
+  또는 고도 의존 R은 TODO(oct), 사용자 판단 대기.
+- **P6 완주 (Plan A 성립)**: Unity 실렌더→TRT INT8→연관→PnP→EKF(지연 보상, τ=wallclock)
+  → 착륙 오차 **138.9 m**, 연착륙 0.43 m/s, 전체 사슬 τ median **165 ms**,
+  frames/p6 오버레이 147장. results/p6_closed_loop.json (+진단 p6_diag.json, gate_log 포함).
+- **P7 calibrated 12조건(n=200)**: 보상 시 CEP **41.9 m 전 τ 평탄**, 미보상 τ 비례
+  52.5 m(0.05 s)→5558 m(5 s). 실측 σ·fp_rate 기반 — assumed 아님.
+- 밤중 이슈 해결 로그: 학습 pin-memory 크래시(워커 8→2), 학습+MC 병렬 RAM 고갈(직렬화),
+  eval_det ONNX CUDA 바인딩(cpu 강제), bench_tau 자체 양자화 sanity 실패(export 산출물은
+  정상 — bench와 export 양자화 설정 통일 필요, 아침 항목).
+- **아침 남은 일**: ① Unity 끄고 클린 τ 벤치(n·s, 4백엔드) — 밤 측정치는 Unity 점유로
+  오염(TRT FP32 66 ms 등) ② 실측 τ 지점 MC 6조건 ③ aggregate_mc 집계·그림
+  ④ (선택) 고지대 held-out 일반화 test ⑤ n vs s CEP 비교표.
+
 ## P4 완료 · Unity 렌더 서버·투영 정합 검증 통과 (2026-08-28)
 
 - Unity 6.5(6000.5.10f1), BIRP, 프로젝트 루트 = unity/ (Hub가 만든 하위 폴더에서
