@@ -75,11 +75,21 @@ public static class SceneBuilder
         td.SetHeights(0, 0, heights);
 
         // --- 텍스처 레이어 (사용 영역 east×north에 1:1)
+        // 텍스처는 반드시 에셋으로 임포트해 저장한다 — 메모리 Texture2D는 스크립트
+        // 재컴파일(도메인 리로드) 때 파괴되어 체크무늬(missing texture)가 된다.
         if (File.Exists(texPath))
         {
-            byte[] texBytes = File.ReadAllBytes(texPath);
-            var tex = new Texture2D(2, 2);
-            tex.LoadImage(texBytes);
+            const string texAsset = "Assets/LunarTexture.png";
+            File.Copy(texPath, texAsset, true);
+            AssetDatabase.ImportAsset(texAsset);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(texAsset);
+            imp.maxTextureSize = 4096;                    // 원본 3401px — 기본 2048 다운스케일 방지
+            imp.npotScale = TextureImporterNPOTScale.None;
+            imp.mipmapEnabled = true;
+            imp.textureCompression = TextureImporterCompression.Uncompressed;
+            imp.wrapMode = TextureWrapMode.Repeat;
+            imp.SaveAndReimport();
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texAsset);
             var layer = new TerrainLayer
             {
                 diffuseTexture = tex,
