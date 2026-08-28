@@ -6,8 +6,14 @@ Unity는 센서 모사 전용이다. 좌표계 매핑(x=East, y=Up, z=North, L �
 ## 수동 설정 절차 (Editor GUI)
 
 1. Unity Hub에서 **Unity 6 LTS(또는 2022.3 LTS 이상)**, 3D (Built-in Render Pipeline) 템플릿으로
-   새 프로젝트를 만든다. 프로젝트 위치는 이 저장소의 `unity/` 폴더를 그대로 쓰거나,
-   별도 위치라면 아래 3번에서 Assets만 복사한다.
+   새 프로젝트를 만든다. **Hub는 항상 `<위치>/<프로젝트명>` 하위 폴더를 새로 만들므로**,
+   이 저장소의 `unity/`를 프로젝트 루트로 쓰려면:
+   1) 아무 위치(임시)에 새 프로젝트 생성 → 에디터가 열리면 그냥 종료
+   2) 생성된 프로젝트의 `Packages/`, `ProjectSettings/` 폴더를 이 저장소 `unity/` 바로 밑으로 이동
+   3) 임시 프로젝트 폴더 삭제
+   4) Hub → **Add**(디스크에서 프로젝트 추가) → 이 저장소의 `unity/` 선택 → 열기
+   이렇게 하면 `unity/Assets`의 스크립트가 그대로 잡혀 아래 3번(복사)이 필요 없다.
+   (Library/Temp 등 생성 파일은 .gitignore에 이미 있음)
 2. 사전 조건: `data/processed/`에 `heightmap.raw`, `heightmap_meta.json`, `texture_L.png`가
    있어야 한다 (`data/crop.py` 산출). 없으면 SceneBuilder가 에러 로그를 낸다.
 3. 이 저장소의 `unity/Assets/Editor/SceneBuilder.cs`와 `unity/Assets/Scripts/RenderServer.cs`를
