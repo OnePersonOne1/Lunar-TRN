@@ -1,8 +1,13 @@
 """투영·정합 검증 CLI: Unity 렌더 위에 camera.py 투영 카탈로그 원 overlay + 중심 픽셀 오차 측정.
 
 알려진 pose에서 렌더 → 카탈로그 원 overlay(figs/p4_projection_check.png) → 가장 큰 크레이터
-5개의 예측 중심 vs 렌더 상 중심(Hough 원 검출) 픽셀 오차 → results/p4_projection_check.json.
-5 px 이내면 합격.
+5개의 예측 중심 픽셀 오차 → results/p4_projection_check.json. 5 px 이내면 합격.
+
+오차 측정: WAC 텍스처를 같은 pose의 평면 근사 카메라 뷰로 리샘플한 기준 이미지에서
+크레이터 주변 패치를 떼어 렌더에 템플릿 매칭(NCC, 고역 통과로 조명 성분 제거).
+렌더의 알베도가 그 텍스처에서 왔으므로, 이 매칭 오차는 순수하게 기하 정합
+(지형 배치·카메라 모델·이미지 방향) 오차를 측정한다. (Hough 원 검출은 저대비
+크레이터에서 불안정해 교체함.)
 """
 from __future__ import annotations
 
@@ -23,33 +28,55 @@ from unity.client import RenderClient  # noqa: E402
 
 PASS_PX = 5.0
 N_CRATERS = 5
+SEARCH_PX = 40      # 예측 위치 주변 탐색 반경
+NCC_MIN = 0.3       # 이 미만이면 매칭 실패로 처리
+HIGHPASS_SIGMA = 25.0
 
 
-def detect_circle_center(
-    img_gray: np.ndarray, u: float, v: float, rad_px: float
-) -> tuple[float, float] | None:
-    """예측 위치 주변 창에서 Hough 원 검출 → 가장 가까운 원의 중심."""
-    half = int(rad_px * 1.6)
-    x0, y0 = int(u) - half, int(v) - half
-    x1, y1 = int(u) + half, int(v) + half
-    h, w = img_gray.shape
-    x0, y0 = max(x0, 0), max(y0, 0)
-    x1, y1 = min(x1, w), min(y1, h)
-    win = img_gray[y0:y1, x0:x1]
-    if win.size == 0:
+def highpass(a: np.ndarray) -> np.ndarray:
+    """조명(저주파) 성분 제거 + 정규화 — 텍스처 알베도 무늬만 남긴다."""
+    hp = a.astype(np.float32) - cv2.GaussianBlur(a.astype(np.float32), (0, 0), HIGHPASS_SIGMA)
+    return (hp - hp.mean()) / (hp.std() + 1e-9)
+
+
+def ref_patch(
+    cfg: dict, r: np.ndarray, tex: np.ndarray, x_min: float, y_max: float, dx_m: float,
+    ui: int, vi: int, half: int, z_plane: float,
+) -> np.ndarray:
+    """예측 픽셀 (ui, vi) 주변 half 창을, 고도 z_plane 평면 가정으로 텍스처에서 리샘플.
+
+    z_plane에 크레이터 자신의 카탈로그 고도를 넣으면 그 크레이터의 텍스처 무늬가
+    3-D 투영 위치와 일치한다(단일 전역 평면을 쓰면 가장자리에서 시차 오차 발생).
+    """
+    f = K_cam(cfg)[0, 0]
+    W, H = float(cfg["camera"]["W"]), float(cfg["camera"]["H"])
+    h_eff = float(r[2]) - z_plane
+    uu, vv = np.meshgrid(np.arange(ui - half, ui + half, dtype=np.float32),
+                         np.arange(vi - half, vi + half, dtype=np.float32))
+    x_g = r[0] + (uu - W / 2.0) * h_eff / f
+    y_g = r[1] - (vv - H / 2.0) * h_eff / f
+    return cv2.remap(tex, ((x_g - x_min) / dx_m).astype(np.float32),
+                     ((y_max - y_g) / dx_m).astype(np.float32), cv2.INTER_LINEAR)
+
+
+def detect_by_template(
+    render_hp: np.ndarray, tpl_patch: np.ndarray, u: float, v: float
+) -> tuple[float, float, float] | None:
+    """크레이터 텍스처 패치를 렌더의 예측 위치 주변에 NCC 매칭 → (u, v, ncc)."""
+    h, w = render_hp.shape
+    t_half = tpl_patch.shape[0] // 2
+    s_half = t_half + SEARCH_PX
+    ui, vi = int(round(u)), int(round(v))
+    if not (s_half <= ui < w - s_half and s_half <= vi < h - s_half):
         return None
-    win = cv2.GaussianBlur(win, (5, 5), 0)
-    circles = cv2.HoughCircles(
-        win, cv2.HOUGH_GRADIENT, dp=1, minDist=rad_px,
-        param1=80, param2=25,
-        minRadius=int(rad_px * 0.6), maxRadius=int(rad_px * 1.4),
-    )
-    if circles is None:
+    win = render_hp[vi - s_half:vi + s_half, ui - s_half:ui + s_half]
+    res = cv2.matchTemplate(win, tpl_patch, cv2.TM_CCOEFF_NORMED)
+    _, score, _, loc = cv2.minMaxLoc(res)
+    if score < NCC_MIN:
         return None
-    cand = circles[0]
-    d = np.hypot(cand[:, 0] + x0 - u, cand[:, 1] + y0 - v)
-    k = int(d.argmin())
-    return float(cand[k, 0] + x0), float(cand[k, 1] + y0)
+    du = loc[0] - SEARCH_PX
+    dv = loc[1] - SEARCH_PX
+    return float(u + du), float(v + dv), float(score)
 
 
 def main() -> None:
@@ -57,6 +84,8 @@ def main() -> None:
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--seed", type=int, default=0)  # CLI 규약 통일용
     ap.add_argument("--catalog", default="data/processed/catalog_L.csv")
+    ap.add_argument("--texture", default="data/processed/texture_L.png")
+    ap.add_argument("--dem", default="data/processed/dem_L.npz")
     ap.add_argument("--out", default="results/p4_projection_check.json")
     ap.add_argument("--fig", default="figs/p4_projection_check.png")
     ap.add_argument("--pose", type=float, nargs=3, default=None,
@@ -78,6 +107,11 @@ def main() -> None:
     img = client.render(r, args.sun[0], args.sun[1], frame_id=0)
     client.close()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    render_hp = highpass(gray)
+    tex = cv2.imread(args.texture, cv2.IMREAD_GRAYSCALE).astype(np.float32)
+    dem = np.load(args.dem)
+    dx_m = float(dem["x"][1] - dem["x"][0])
+    x_min, y_max = float(dem["x"][0]), float(dem["y"].max())
 
     W, H = float(cfg["camera"]["W"]), float(cfg["camera"]["H"])
     f = K_cam(cfg)[0, 0]
@@ -95,13 +129,23 @@ def main() -> None:
         if not inside[i] or len(checks) >= N_CRATERS:
             continue
         rad = f * catalog[i, 3] / z_C[i] / 2.0
-        found = detect_circle_center(gray, uv[i, 0], uv[i, 1], rad)
+        t_half = int(max(rad * 1.5, 24))
+        s_half = t_half + SEARCH_PX
+        ui, vi = int(round(uv[i, 0])), int(round(uv[i, 1]))
+        if not (s_half <= ui < W - s_half and s_half <= vi < H - s_half):
+            continue  # 탐색 창이 화면 밖 — 다음으로 큰 크레이터로
+        pad = 32  # 고역 통과 컨텍스트
+        patch = ref_patch(cfg, r, tex, x_min, y_max, dx_m, ui, vi, t_half + pad,
+                          z_plane=float(catalog[i, 2]))
+        tpl = highpass(patch)[pad:-pad, pad:-pad]
+        found = detect_by_template(render_hp, tpl, uv[i, 0], uv[i, 1])
         err = None if found is None else float(np.hypot(found[0] - uv[i, 0], found[1] - uv[i, 1]))
         checks.append({
             "catalog_id": int(cat["id"][i]) if "id" in (cat.dtype.names or ()) else int(i),
             "D_m": float(catalog[i, 3]),
             "predicted_uv": [float(uv[i, 0]), float(uv[i, 1])],
             "detected_uv": None if found is None else [found[0], found[1]],
+            "ncc": None if found is None else found[2],
             "error_px": err,
         })
         if found is not None:

@@ -9,8 +9,14 @@ unity/Temp/
 unity/Logs/
 unity/UserSettings/
 unity/obj/
+unity/.vscode/
 unity/*.csproj
 unity/*.sln
+unity/*.slnx
+# Build Scene(SceneBuilder)이 data/processed에서 재생성하는 파생 에셋
+unity/Assets/LunarTerrainData.asset*
+unity/Assets/LunarTerrainLayer.asset*
+unity/Assets/LunarTexture.png*
 *.engine
 *.calib
 *.pt

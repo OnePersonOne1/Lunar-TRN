@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "git_hash": "c08d7f2470777c05c2a4b1c8d75f3ebc1dfa7bb5",
+    "config_hash": "f1d2ca0d773388acf72848730661f34fe437ba29122c6a1b835f33c5eab64b16",
+    "timestamp": "2026-08-28T14:00:32.805334+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "pose": [
+    0.0,
+    0.0,
+    23250.0
+  ],
+  "sun_az_el_deg": [
+    135.0,
+    30.0
+  ],
+  "checks": [
+    {
+      "catalog_id": 553,
+      "D_m": 1355.5,
+      "predicted_uv": [
+        86.62008034795656,
+        921.8185035949213
+      ],
+      "detected_uv": [
+        86.62008034795656,
+        922.8185035949213
+      ],
+      "ncc": 0.9592952132225037,
+      "error_px": 1.0
+    },
+    {
+      "catalog_id": 61,
+      "D_m": 1112.0,
+      "predicted_uv": [
+        921.5897374895592,
+        75.92112838696374
+      ],
+      "detected_uv": [
+        921.5897374895592,
+        77.92112838696374
+      ],
+      "ncc": 0.9407894611358643,
+      "error_px": 2.0
+    }
+  ],
+  "mean_error_px": 1.5,
+  "passed_5px": true,
+  "note": "5 px 초과 시 의심 순서: 텍스처 상하/좌우 반전, 고도 스케일, 지형 오프셋, RAW 바이트 오더"
+}

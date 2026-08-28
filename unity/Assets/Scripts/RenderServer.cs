@@ -31,6 +31,7 @@ public class RenderServer : MonoBehaviour
     public Light sun;                        // Directional Light "Sun"
     public int imageWidth = 1024;            // config.yaml camera.W
     public int imageHeight = 1024;           // config.yaml camera.H
+    public bool previewOnScreen = true;      // Game 뷰에 마지막 렌더 프레임 표시 (검수용)
 
     private TcpListener _listener;
     private Thread _acceptThread;
@@ -171,6 +172,19 @@ public class RenderServer : MonoBehaviour
         byte[] png = tex.EncodeToPNG();
         Destroy(tex);
         return png;
+    }
+
+    // Game 뷰 검수용: TrnCamera는 오프스크린 RenderTexture에만 그리므로,
+    // 마지막 렌더 프레임을 화면에 그대로 띄운다 (요청이 올 때마다 갱신됨).
+    void OnGUI()
+    {
+        if (!previewOnScreen || renderCamera == null || renderCamera.targetTexture == null) return;
+        RenderTexture rt = renderCamera.targetTexture;
+        float s = Mathf.Min((float)Screen.width / rt.width, (float)Screen.height / rt.height);
+        float w = rt.width * s, h = rt.height * s;
+        GUI.DrawTexture(new Rect((Screen.width - w) / 2f, (Screen.height - h) / 2f, w, h), rt,
+                        ScaleMode.ScaleToFit, false);
+        GUI.Label(new Rect(8, 8, 600, 24), "[RenderServer preview] last rendered frame");
     }
 
     static void SendPayload(NetworkStream stream, byte[] payload)
