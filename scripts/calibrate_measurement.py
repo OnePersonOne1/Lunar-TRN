@@ -32,10 +32,14 @@ def calibrate(model_path: str, cfg: dict, dataset: Path, seed: int) -> dict:
                           encoding="utf-8")
     x0_err = np.asarray([float(v) for v in cfg["ekf"]["x0_error"]][:3])
 
+    h_min = float(cfg["trn_band"]["h_min_m"])
+    h_max = float(cfg["trn_band"]["h_max_m"])
     errs, n_valid, n_total = [], 0, 0
     for row in poses:
         if str(row["split"]) != "val":
             continue
+        if not (h_min <= float(row["z"]) <= h_max):
+            continue  # 루프가 측정을 만드는 고도 구간(trn_band)만 보정에 사용
         stem = f"traj{int(row['traj_id'])}_{int(row['frame_id']):05d}"
         img_path = dataset / "images" / "val" / f"{stem}.png"
         img = cv2.imread(str(img_path))
