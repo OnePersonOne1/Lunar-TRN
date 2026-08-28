@@ -119,6 +119,10 @@ def main() -> None:
             {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in e.items()}
             for e in res["meas_log"]
         ],
+        "gate_log": [
+            {k: (float(v) if isinstance(v, (np.floating, float)) else v) for k, v in e.items()}
+            for e in res["gate_log"]
+        ],
         "landing_xy_m": res["landing_xy"].tolist(),
         "landing_error_m": float(np.linalg.norm(res["landing_xy"])),
         "landing_v_mps": res["landing_v"],

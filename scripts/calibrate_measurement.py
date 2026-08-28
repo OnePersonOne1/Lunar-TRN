@@ -62,10 +62,12 @@ def calibrate(model_path: str, cfg: dict, dataset: Path, seed: int) -> dict:
     # EKF의 R은 정상 측정의 잡음이어야 한다. 소수의 대형 실패(오연관 PnP 합의)는
     # 루프의 χ² 게이트가 기각하는 대상이므로, σ는 로버스트(MAD 기반 3σ 클리핑)로 추정하고
     # 대형 실패는 fp_rate(발생률)·fp_offset(크기)으로 따로 보고한다.
-    med = np.median(errs, axis=0)
-    sigma_mad = 1.4826 * np.median(np.abs(errs - med), axis=0)
-    inlier = np.all(np.abs(errs - med) <= 3.0 * np.maximum(sigma_mad, 1e-9), axis=1)
-    sigma = errs[inlier].std(axis=0)
+    # σ는 0 기준으로 추정한다: EKF에 bias 상태가 없어(TODO(oct)) 비행 구간·태양각에 따라
+    # 이동하는 계통 편향이 혁신에 그대로 남으므로, R가 편향까지 덮지 않으면
+    # χ² 게이트가 정상 측정을 연쇄 기각한다(P6 진단에서 관측).
+    sigma_mad = 1.4826 * np.median(np.abs(errs), axis=0)          # 0 기준 MAD
+    inlier = np.all(np.abs(errs) <= 3.0 * np.maximum(sigma_mad, 1e-9), axis=1)
+    sigma = np.sqrt(np.mean(errs[inlier] ** 2, axis=0))           # 0 기준 RMS (클리핑)
     bias = errs[inlier].mean(axis=0)
     out_norm = np.linalg.norm(errs[~inlier], axis=1)
     return {
