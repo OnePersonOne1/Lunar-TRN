@@ -84,8 +84,11 @@ def main() -> None:
 
     out: dict = {"meta": result_meta(args.config), "conf": cfg["detector"]["conf"]}
     for key, path in (("fp32", args.fp32), ("int8", args.int8)):
+        # .onnx는 CPU 전용 onnxruntime — CUDA 텐서 바인딩이 안 되므로 device를 CPU로 고정
+        device = "cpu" if str(path).endswith(".onnx") else None
         metrics = YOLO(path).val(
-            data=args.data, imgsz=int(cfg["detector"]["imgsz"]), split="val", verbose=False
+            data=args.data, imgsz=int(cfg["detector"]["imgsz"]), split="val", verbose=False,
+            **({"device": device} if device else {}),
         )
         entry = {
             "model": path,
