@@ -41,12 +41,40 @@ public class RenderServer : MonoBehaviour
     void Start()
     {
         if (renderCamera == null) renderCamera = GetComponent<Camera>();
+        ConfigureQuality();
         _listener = new TcpListener(IPAddress.Loopback, port);
         _listener.Start();
         _running = true;
         _acceptThread = new Thread(AcceptLoop) { IsBackground = true };
         _acceptThread.Start();
         Debug.Log($"[RenderServer] listening on 127.0.0.1:{port}");
+    }
+
+    // 센서 모사 품질 설정 (Play 시 1회): 밴드 고도(16.5~30 km)의 원거리 카메라에서도
+    // 지형·텍스처가 전해상도로 렌더되고, 조명이 태양 직사광만으로 구성되게 한다.
+    void ConfigureQuality()
+    {
+        // 달: 대기 없음 — 주변광·안개 제거, 배경은 검정(우주)
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = Color.black;
+        RenderSettings.fog = false;
+        // 크레이터 림 그림자가 원거리 카메라에서도 렌더되게
+        QualitySettings.shadowDistance = 60000f;
+        QualitySettings.shadowCascades = 4;
+        if (renderCamera != null)
+        {
+            renderCamera.clearFlags = CameraClearFlags.SolidColor;
+            renderCamera.backgroundColor = Color.black;
+            renderCamera.allowHDR = false;
+            renderCamera.allowMSAA = false;
+        }
+        foreach (Terrain t in Terrain.activeTerrains)
+        {
+            t.basemapDistance = 500000f;            // 저해상도 base map 회피 (버전에 따라 클램프될 수 있음)
+            t.heightmapPixelError = 1f;             // 지형 기하 LOD 최소화
+            t.terrainData.baseMapResolution = 2048; // basemapDistance 클램프 대비 base map 해상도 상향
+        }
+        Debug.Log($"[RenderServer] quality set: basemapDistance={(Terrain.activeTerrain != null ? Terrain.activeTerrain.basemapDistance : -1f)}");
     }
 
     void AcceptLoop()
