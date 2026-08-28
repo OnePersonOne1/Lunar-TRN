@@ -17,6 +17,8 @@ def main() -> None:
     ap.add_argument("--data", default="data/dataset/dataset.yaml")
     ap.add_argument("--out", default="runs/train")
     ap.add_argument("--run", action="store_true", help="명령 출력 대신 직접 학습 실행")
+    ap.add_argument("--workers", type=int, default=2,
+                    help="데이터로더 워커 수 (Windows에서 8이면 pin memory 스레드가 죽는 사례)")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fh:
@@ -25,7 +27,7 @@ def main() -> None:
     kwargs = dict(
         data=args.data, imgsz=int(det["imgsz"]), epochs=int(det["epochs"]),
         batch=int(det["batch"]), seed=args.seed, project=args.out, name="crater",
-        exist_ok=True, deterministic=True,
+        exist_ok=True, deterministic=True, workers=args.workers,
     )
     cli = (
         f'.venv\\Scripts\\python -m ultralytics.cfg train model={det["model"]} '
