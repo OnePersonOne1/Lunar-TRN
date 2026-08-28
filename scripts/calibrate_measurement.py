@@ -59,17 +59,26 @@ def calibrate(model_path: str, cfg: dict, dataset: Path, seed: int) -> dict:
     errs = np.asarray(errs)
     if len(errs) < 10:
         return {"error": f"유효 PnP 측정이 {len(errs)}개뿐 — 보정 불가", "n_frames": n_total}
-    sigma = errs.std(axis=0)
-    bias = errs.mean(axis=0)
-    norm = np.linalg.norm(errs, axis=1)
-    outlier_ratio = float((norm > 3.0 * np.linalg.norm(sigma)).mean())
+    # EKF의 R은 정상 측정의 잡음이어야 한다. 소수의 대형 실패(오연관 PnP 합의)는
+    # 루프의 χ² 게이트가 기각하는 대상이므로, σ는 로버스트(MAD 기반 3σ 클리핑)로 추정하고
+    # 대형 실패는 fp_rate(발생률)·fp_offset(크기)으로 따로 보고한다.
+    med = np.median(errs, axis=0)
+    sigma_mad = 1.4826 * np.median(np.abs(errs - med), axis=0)
+    inlier = np.all(np.abs(errs - med) <= 3.0 * np.maximum(sigma_mad, 1e-9), axis=1)
+    sigma = errs[inlier].std(axis=0)
+    bias = errs[inlier].mean(axis=0)
+    out_norm = np.linalg.norm(errs[~inlier], axis=1)
     return {
-        "sigma_xyz_m": sigma.tolist(),
+        "sigma_xyz_m": sigma.tolist(),          # sim이 읽는 값 (클리핑 std)
         "bias_xyz_m": bias.tolist(),
-        "outlier_ratio_3sigma": outlier_ratio,
+        "sigma_mad_xyz_m": sigma_mad.tolist(),
+        "sigma_raw_std_xyz_m": errs.std(axis=0).tolist(),
+        "fp_rate_est": float((~inlier).mean()),     # 게이트 대상 대형 실패 발생률
+        "fp_offset_med_m": float(np.median(out_norm)) if len(out_norm) else None,
         "valid_ratio": n_valid / max(n_total, 1),
         "n_frames": n_total,
         "n_valid": n_valid,
+        "n_inlier": int(inlier.sum()),
         "errors_xyz_m": errs.tolist(),
     }
 
