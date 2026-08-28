@@ -96,25 +96,33 @@ public static class SceneBuilder
         AssetDatabase.CreateAsset(td, "Assets/LunarTerrainData.asset");
 
         // --- Terrain 배치: L 원점(사용 영역 중심, z=0 고도)이 월드 (0,0,0)
+        // 재실행 시 중복 생성 방지 (Unity 오브젝트는 ??/?. 금지 — 파괴된 객체가 가짜 null이라 == null로만 검사)
+        var oldTerrain = GameObject.Find("LunarTerrain");
+        if (oldTerrain != null) UnityEngine.Object.DestroyImmediate(oldTerrain);
         var terrainGo = Terrain.CreateTerrainGameObject(td);
         terrainGo.name = "LunarTerrain";
         terrainGo.transform.position = new Vector3(
             -meta.size_m.east / 2.0f, meta.z_min_m, -meta.size_m.north / 2.0f);
 
         // --- 태양
-        var sunGo = GameObject.Find("Sun") ?? new GameObject("Sun");
-        var sun = sunGo.GetComponent<Light>() ?? sunGo.AddComponent<Light>();
+        var sunGo = GameObject.Find("Sun");
+        if (sunGo == null) sunGo = new GameObject("Sun");
+        var sun = sunGo.GetComponent<Light>();
+        if (sun == null) sun = sunGo.AddComponent<Light>();
         sun.type = LightType.Directional;
         sun.shadows = LightShadows.Soft;
 
         // --- 카메라 + RenderServer
-        var camGo = GameObject.Find("TrnCamera") ?? new GameObject("TrnCamera");
-        var cam = camGo.GetComponent<Camera>() ?? camGo.AddComponent<Camera>();
+        var camGo = GameObject.Find("TrnCamera");
+        if (camGo == null) camGo = new GameObject("TrnCamera");
+        var cam = camGo.GetComponent<Camera>();
+        if (cam == null) cam = camGo.AddComponent<Camera>();
         cam.fieldOfView = CameraFovVDeg;      // Unity fieldOfView = 수직 FOV
         cam.farClipPlane = FarClip;
         cam.nearClipPlane = 10.0f;
         cam.targetTexture = new RenderTexture(ImageSize, ImageSize, 24);
-        var server = camGo.GetComponent<RenderServer>() ?? camGo.AddComponent<RenderServer>();
+        var server = camGo.GetComponent<RenderServer>();
+        if (server == null) server = camGo.AddComponent<RenderServer>();
         server.renderCamera = cam;
         server.sun = sun;
         server.imageWidth = ImageSize;
