@@ -412,8 +412,15 @@ def main() -> None:
     print(f"onnx: {onnx_path}", flush=True)
 
     calib_imgs, calib_source = load_calib_images(cfg, rng)
-    bench_imgs = temporary_images(args.n_sanity, rng)
-    print(f"calib: {calib_source} ({len(calib_imgs)}장)", flush=True)
+    # sanity·타이밍 이미지는 실제 도메인(렌더)이 있으면 그걸 쓴다 — 학습 모델은
+    # 도메인 밖 임시 이미지에서 FP32/INT8이 허위 박스로 크게 갈려 sanity가 무의미해진다.
+    if calib_source == "temporary":
+        bench_imgs = temporary_images(args.n_sanity, rng)
+    else:
+        pick = rng.choice(len(calib_imgs), size=min(args.n_sanity, len(calib_imgs)),
+                          replace=False)
+        bench_imgs = [calib_imgs[int(i)] for i in pick]
+    print(f"calib: {calib_source} ({len(calib_imgs)}장), bench/sanity: {calib_source}", flush=True)
 
     files = {
         "trt_fp32": out_dir / "tau_trt_fp32.json",
@@ -502,6 +509,7 @@ def main() -> None:
         samples = bench(runner, bench_imgs, warmup, n_iter)
         meta = bench_meta(cfg, args.config, {
             "backend": key, "calib": calib_source, "seed": args.seed,
+            "model": args.model or cfg["detector"]["model"],
             "int8_variant": {"trt_int8": "s8s8_sym", "ort_cpu_int8": "u8s8"}.get(key),
             "sanity_vs_fp32": sanity.get(sanity_key.get(key, "")),
         })
