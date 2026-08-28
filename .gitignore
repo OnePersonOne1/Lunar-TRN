@@ -27,3 +27,4 @@ unity/Assets/LunarTexture.png*
 __pycache__/
 *.pyc
 .pytest_cache/
+data/dataset/
