@@ -12,8 +12,10 @@ Unity는 센서 모사 전용이다. 좌표계 매핑(x=East, y=Up, z=North, L �
    있어야 한다 (`data/crop.py` 산출). 없으면 SceneBuilder가 에러 로그를 낸다.
 3. 이 저장소의 `unity/Assets/Editor/SceneBuilder.cs`와 `unity/Assets/Scripts/RenderServer.cs`를
    Unity 프로젝트의 같은 경로(`Assets/Editor/`, `Assets/Scripts/`)에 복사한다.
-   (Unity 프로젝트가 `unity/`가 아니라면 `SceneBuilder.cs`의 `ProcessedDir` 상대 경로를
-   `data/processed` 절대 경로로 수정한다.)
+   프로젝트가 `unity/` 또는 `unity/<프로젝트명>/`(예: `unity/Lunar_TRN/`)이면 경로 수정이
+   필요 없다(SceneBuilder가 `../data/processed`, `../../data/processed`를 순서대로 찾는다).
+   저장소 밖이라면 `ProcessedDirCandidates`에 `data/processed` 절대 경로를 추가한다.
+   `unity/<프로젝트명>/`은 .gitignore에 추가한다(`unity/Lunar_TRN/`은 이미 있음).
 4. 컴파일 완료 후 메뉴 **LunarTRN → Build Scene** 실행. Terrain("LunarTerrain"),
    Directional Light("Sun"), 카메라("TrnCamera", RenderServer 부착)가 생성된다.
 5. TrnCamera 선택 → Inspector에서 RenderServer의 `port`가 config.yaml `unity.port`(5555)와
