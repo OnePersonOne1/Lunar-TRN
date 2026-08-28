@@ -6,7 +6,6 @@ logs/
 results/large/
 unity/Library/
 unity/Temp/
-unity/Lunar_TRN/
 *.engine
 *.calib
 *.pt

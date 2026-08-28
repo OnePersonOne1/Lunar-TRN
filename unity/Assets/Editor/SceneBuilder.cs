@@ -28,15 +28,8 @@ public class HeightmapMeta
 
 public static class SceneBuilder
 {
-    // 프로젝트 루트 기준 상대 경로 후보: unity/ 직접 또는 unity/<프로젝트명>/ 한 단계 아래 (README 참고)
-    static readonly string[] ProcessedDirCandidates = { "../data/processed", "../../data/processed" };
-
-    static string FindProcessedDir()
-    {
-        foreach (string d in ProcessedDirCandidates)
-            if (Directory.Exists(d)) return d;
-        return ProcessedDirCandidates[0];
-    }
+    // 프로젝트 루트 기준 상대 경로: Unity 프로젝트가 lunar-trn/unity/ 안에 있다고 가정 (README 참고)
+    const string ProcessedDir = "../data/processed";
     const float CameraFovVDeg = 60.0f;   // config.yaml camera.fov_v_deg
     const int ImageSize = 1024;          // config.yaml camera.W = H
     const float FarClip = 200000.0f;     // ≥ 200 km
@@ -44,10 +37,9 @@ public static class SceneBuilder
     [MenuItem("LunarTRN/Build Scene")]
     public static void BuildScene()
     {
-        string processedDir = FindProcessedDir();
-        string metaPath = Path.Combine(processedDir, "heightmap_meta.json");
-        string rawPath = Path.Combine(processedDir, "heightmap.raw");
-        string texPath = Path.Combine(processedDir, "texture_L.png");
+        string metaPath = Path.Combine(ProcessedDir, "heightmap_meta.json");
+        string rawPath = Path.Combine(ProcessedDir, "heightmap.raw");
+        string texPath = Path.Combine(ProcessedDir, "texture_L.png");
         if (!File.Exists(metaPath) || !File.Exists(rawPath))
         {
             Debug.LogError($"heightmap 데이터가 없다: {metaPath} / {rawPath} (data/crop.py를 먼저 실행)");
