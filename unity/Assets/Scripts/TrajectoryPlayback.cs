@@ -74,21 +74,24 @@ public class TrajectoryPlayback : MonoBehaviour
             Debug.LogWarning($"[TrajectoryPlayback] 오버레이 없음: {overlayDir} — Display 3 생략");
             return;
         }
-        Vector3 basePos = new Vector3(2000000f, 2000000f, 2000000f);
+        // float 정밀도 주의: 수백만 좌표는 쿼드가 틀어진다 (TelemetryView 참고)
+        Vector3 basePos = new Vector3(0f, 150000f, -500000f);
+        const float Q = 100f;
         var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
         quad.name = "SensorOverlayQuad";
         Destroy(quad.GetComponent<Collider>());
         quad.transform.position = basePos;
+        quad.transform.localScale = new Vector3(Q, Q, 1f);
         _overlayTex = new Texture2D(2, 2);
         _overlayMat = new Material(Shader.Find("Unlit/Texture"));
         quad.GetComponent<Renderer>().material = _overlayMat;
         var camGo = new GameObject("SensorViewCamera");
         var cam = camGo.AddComponent<Camera>();
         cam.orthographic = true;
-        cam.orthographicSize = 0.5f;
-        cam.nearClipPlane = 0.1f;
-        cam.farClipPlane = 10f;
-        cam.transform.position = basePos + new Vector3(0f, 0f, -1f);
+        cam.orthographicSize = Q * 0.5f;
+        cam.nearClipPlane = 1f;
+        cam.farClipPlane = 1000f;
+        cam.transform.position = basePos + new Vector3(0f, 0f, -100f);
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
         cam.targetDisplay = overlayDisplay;

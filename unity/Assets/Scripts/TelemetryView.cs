@@ -99,22 +99,25 @@ public class TelemetryView : MonoBehaviour
         DrawText(X1 - 30, 8, "S", Tick, 2);
         _tex.Apply();
 
-        Vector3 basePos = new Vector3(3000000f, 3000000f, 3000000f);
+        // 원점에서 너무 멀면(수백만) float 정밀도로 쿼드가 틀어진다 — 50만 거리 + 100배 스케일로
+        // 상대 오차를 무시 가능하게 한다. 다른 카메라 far(≤30만)보다 멀어 장면에 안 보인다.
+        Vector3 basePos = new Vector3(0f, 100000f, -500000f);
+        const float Q = 100f;
         float sy = (float)H / W;
         var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
         quad.name = "TelemetryQuad";
         Destroy(quad.GetComponent<Collider>());
         quad.transform.position = basePos;
-        quad.transform.localScale = new Vector3(1f, sy, 1f);
+        quad.transform.localScale = new Vector3(Q, Q * sy, 1f);
         quad.GetComponent<Renderer>().material =
             new Material(Shader.Find("Unlit/Texture")) { mainTexture = _tex };
         var camGo = new GameObject("TelemetryCamera");
         var cam = camGo.AddComponent<Camera>();
         cam.orthographic = true;
-        cam.orthographicSize = sy * 0.5f;
-        cam.nearClipPlane = 0.1f;
-        cam.farClipPlane = 10f;
-        cam.transform.position = basePos + new Vector3(0f, 0f, -1f);
+        cam.orthographicSize = Q * sy * 0.5f;
+        cam.nearClipPlane = 1f;
+        cam.farClipPlane = 1000f;
+        cam.transform.position = basePos + new Vector3(0f, 0f, -100f);
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Bg;
         cam.targetDisplay = targetDisplay;
