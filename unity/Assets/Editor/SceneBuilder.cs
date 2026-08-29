@@ -127,6 +127,8 @@ public static class SceneBuilder
             AssetDatabase.CreateAsset(layer, "Assets/LunarTerrainLayer.asset");
 
             // 패딩(사용 영역 북쪽) 반복 텍스처 억제: 검정 레이어를 알파맵으로 패딩에만 적용
+            AssetDatabase.DeleteAsset("Assets/LunarPaddingBlack.asset");
+            AssetDatabase.DeleteAsset("Assets/LunarPaddingLayer.asset");
             var blackTex = new Texture2D(4, 4);
             var px = new Color[16];
             for (int i = 0; i < 16; i++) px[i] = Color.black;
@@ -155,6 +157,7 @@ public static class SceneBuilder
                 }
             }
             td.SetAlphamaps(0, 0, amap);
+            Debug.Log($"[SceneBuilder] 패딩 검정 스플랫 적용 (used northFrac={northFrac:F3})");
         }
         else
         {

@@ -10,7 +10,9 @@ using UnityEngine;
 public class TrajectoryPlayback : MonoBehaviour
 {
     public string trajCsv = "../frames/traj_demo.csv"; // 프로젝트 루트(unity/) 기준
-    public float timeScale = 12.0f;                    // 350 s 비행 → 약 29 s 재생
+    public float timeScaleBand = 5.0f;                 // TRN 밴드(탐지 표시 중) 배속 — 볼거리 구간
+    public float timeScaleCoast = 30.0f;               // 관성 구간 배속 — 빨리 감기
+    public float bandEndT = 100.0f;                    // 밴드 이탈 시각(초) — 이후 coast 배속
     public bool captureFrames = false;                 // Play 중 PNG 저장 (ffmpeg로 mp4)
     public string captureDir = "../frames/demo";
     public int captureFps = 30;
@@ -57,7 +59,8 @@ public class TrajectoryPlayback : MonoBehaviour
             _cam.targetDisplay = targetDisplay;
         }
         SetupOverlayView();
-        Debug.Log($"[TrajectoryPlayback] {_t.Count} rows, {_t[_t.Count - 1]:F0} s, x{timeScale}");
+        Debug.Log($"[TrajectoryPlayback] {_t.Count} rows, {_t[_t.Count - 1]:F0} s, "
+                  + $"x{timeScaleBand}(band)/x{timeScaleCoast}(coast)");
     }
 
     // Display 3: P6 실런의 센서 카메라+탐지 오버레이 프레임을 재생 시각에 동기해 표시.
@@ -145,7 +148,8 @@ public class TrajectoryPlayback : MonoBehaviour
 
     void Update()
     {
-        _clock += Time.deltaTime * timeScale;
+        float scale = _clock < bandEndT ? timeScaleBand : timeScaleCoast;
+        _clock += Time.deltaTime * scale;
         float tEnd = _t[_t.Count - 1];
         float t = Mathf.Min(_clock, tEnd);
         while (_frameIdx < _t.Count - 2 && _t[_frameIdx + 1] <= t) _frameIdx++;
@@ -163,7 +167,7 @@ public class TrajectoryPlayback : MonoBehaviour
         if (captureFrames && _clock >= _nextCapture && _clock <= tEnd + 1f)
         {
             ScreenCapture.CaptureScreenshot(Path.Combine(captureDir, $"demo_{_capIdx++:00000}.png"));
-            _nextCapture += timeScale / captureFps;
+            _nextCapture += scale / captureFps;
         }
     }
 }
