@@ -87,6 +87,8 @@ def main() -> None:
                     help="탐지기 경로 직접 지정 (기본: runs/export/crater_{fp32,int8}.engine)")
     ap.add_argument("--frames-dir", default=None, help="unity: overlay 프레임 저장 디렉터리")
     ap.add_argument("--figs-prefix", default=None, help="예: figs/p1 → figs/p1_trajectory.png 등")
+    ap.add_argument("--traj-out", default=None,
+                    help="참값 궤적 csv 저장 경로 (t,x,y,z — Unity 시연 재생용)")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fh:
@@ -138,6 +140,16 @@ def main() -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(out, indent=2, ensure_ascii=False))
+
+    if args.traj_out:
+        tp = Path(args.traj_out)
+        tp.parent.mkdir(parents=True, exist_ok=True)
+        tr = res["traj_true"]
+        with open(tp, "w", encoding="utf-8") as fh:
+            fh.write("t,x,y,z\n")
+            for t, row in zip(res["traj_t"], tr):
+                fh.write(f"{t:.2f},{row[0]:.2f},{row[1]:.2f},{row[2]:.2f}\n")
+        print(f"traj: {tp} ({len(tr)} rows)")
 
     if args.figs_prefix:
         prefix = Path(args.figs_prefix)

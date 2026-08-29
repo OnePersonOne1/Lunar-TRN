@@ -42,6 +42,27 @@ public static class SceneBuilder
     [MenuItem("LunarTRN/Build Scene (Highlands)")]
     public static void BuildSceneHighlands() { BuildFrom(ProcessedDir + "/highlands"); }
 
+    // 시연(P8): 궤적 재생 + 간이 착륙선 + 추적 카메라. 지형이 이미 빌드돼 있어야 한다.
+    // 궤적: scripts/run_closed_loop.py --measurement truth --traj-out frames/traj_demo.csv
+    [MenuItem("LunarTRN/Add Demo Playback")]
+    public static void AddDemoPlayback()
+    {
+        if (GameObject.Find("LunarTerrain") == null)
+        {
+            Debug.LogError("지형이 없다 — 먼저 LunarTRN/Build Scene을 실행해라.");
+            return;
+        }
+        var go = GameObject.Find("DemoPlayback");
+        if (go == null) go = new GameObject("DemoPlayback");
+        if (go.GetComponent<TrajectoryPlayback>() == null) go.AddComponent<TrajectoryPlayback>();
+        // 시연용 조명 프리셋 (측정과 무관): 저녁 사광으로 그림자 강조
+        var sunGo = GameObject.Find("Sun");
+        if (sunGo != null)
+            sunGo.transform.rotation = Quaternion.Euler(25f, 200f, 0f);
+        Debug.Log("[SceneBuilder] DemoPlayback 추가. Inspector에서 captureFrames를 켜면 " +
+                  "Play 중 frames/demo/에 PNG를 저장한다 (ffmpeg로 mp4).");
+    }
+
     static void BuildFrom(string processedDirIn)
     {
         string metaPath = Path.Combine(processedDirIn, "heightmap_meta.json");

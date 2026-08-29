@@ -136,10 +136,17 @@ public class RenderServer : MonoBehaviour
         }
     }
 
+    // L → Unity 좌표 변환 (계약 §2.1: 이 변환은 이 파일 안에서만 정의한다).
+    // L(ENU: x=East, y=North, z=Up) → Unity(x=East, y=Up, z=North).
+    public static Vector3 LToUnity(float xE, float yN, float zU)
+    {
+        return new Vector3(xE, zU, yN);
+    }
+
     byte[] Render(RenderRequest req)
     {
         // --- L → Unity: x=East, y=Up, z=North. L 원점 = Unity 월드 (0,0,0).
-        Vector3 posUnity = new Vector3(req.r_L[0], req.r_L[2], req.r_L[1]);
+        Vector3 posUnity = LToUnity(req.r_L[0], req.r_L[1], req.r_L[2]);
         renderCamera.transform.position = posUnity;
         // nadir: forward = -Up, 이미지 상단 = 북(+z)
         renderCamera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);

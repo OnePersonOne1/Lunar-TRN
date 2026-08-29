@@ -30,6 +30,15 @@ Unity는 센서 모사 전용이다. 좌표계 매핑(x=East, y=Up, z=North, L �
    → `(1024, 1024, 3)`이 나오면 정상.
 8. 이후 `scripts/check_projection.py`로 정합(5 px 이내)을 검증한다.
 
+## 시연 재생 (P8 영상용, 측정과 무관)
+
+1. 궤적 생성(저장소 루트): `.venv\Scripts\python scripts\run_closed_loop.py --measurement truth --traj-out frames\traj_demo.csv --out results\tmp_truth.json`
+2. Unity에서 지형 빌드 상태(**Build Scene**) 확인 → 메뉴 **LunarTRN → Add Demo Playback**
+3. Play → 간이 착륙선(박스+다리)이 궤적을 따라 하강, 추적 카메라가 Game 뷰에 표시 (350 s → 약 29 s)
+4. 영상으로 뽑으려면: Hierarchy의 DemoPlayback 선택 → Inspector에서 `captureFrames` 체크 → 다시 Play
+   → `frames/demo/demo_*.png` 저장 → `ffmpeg -framerate 30 -i frames/demo/demo_%05d.png -pix_fmt yuv420p figs/slides/demo.mp4`
+5. 렌더 서버(TrnCamera)와 독립이라 시연 재생 중에도 측정 경로는 영향 없음.
+
 ## 흔한 오류
 
 1. **이미지 상하 반전**: `ReadPixels`는 그래픽 API에 따라 세로 방향이 뒤집힐 수 있다.
