@@ -35,11 +35,18 @@ public static class SceneBuilder
     const float FarClip = 200000.0f;     // ≥ 200 km
 
     [MenuItem("LunarTRN/Build Scene")]
-    public static void BuildScene()
+    public static void BuildScene() { BuildFrom(ProcessedDir); }
+
+    // 미학습 지역 일반화 test용(STATUS 2026-08-28): 같은 씬을 고지대 데이터로 재구성.
+    // 본 site로 되돌리려면 일반 Build Scene을 다시 실행한다.
+    [MenuItem("LunarTRN/Build Scene (Highlands)")]
+    public static void BuildSceneHighlands() { BuildFrom(ProcessedDir + "/highlands"); }
+
+    static void BuildFrom(string processedDirIn)
     {
-        string metaPath = Path.Combine(ProcessedDir, "heightmap_meta.json");
-        string rawPath = Path.Combine(ProcessedDir, "heightmap.raw");
-        string texPath = Path.Combine(ProcessedDir, "texture_L.png");
+        string metaPath = Path.Combine(processedDirIn, "heightmap_meta.json");
+        string rawPath = Path.Combine(processedDirIn, "heightmap.raw");
+        string texPath = Path.Combine(processedDirIn, "texture_L.png");
         if (!File.Exists(metaPath) || !File.Exists(rawPath))
         {
             Debug.LogError($"heightmap 데이터가 없다: {metaPath} / {rawPath} (data/crop.py를 먼저 실행)");

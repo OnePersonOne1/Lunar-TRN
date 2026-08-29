@@ -9,8 +9,8 @@ moon:
 site:
   lat0_deg: -42.0
   lon0_deg: 14.0
-  box_km:
-  - 220.0
+  box_km:                      # 2026-08-29 일반화 test용 340 확장 (본 config와 동일 — 궤적 풋프린트 커버)
+  - 340.0
   - 60.0
 camera:
   W: 1024
