@@ -2,7 +2,7 @@
   "meta": {
     "git_hash": "2731e87a4a0eb096a1b29c92ccc0ef987cfae690",
     "config_hash": "5aa49425ab94e97dd64c636b2079b57bd573b194237e779213342d915707669f",
-    "timestamp": "2026-08-28T23:41:43.682849+00:00",
+    "timestamp": "2026-08-29T00:02:36.433871+00:00",
     "hardware": {
       "platform": "Windows-11-10.0.26200-SP0",
       "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
@@ -11,7 +11,7 @@
   },
   "params": {
     "seed": 0,
-    "tau": 0.2,
+    "tau": 0.1957,
     "fp_rate": 0.127,
     "delay_comp": false,
     "n_runs": 200
