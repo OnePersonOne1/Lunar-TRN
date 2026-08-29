@@ -55,6 +55,10 @@ public class RenderServer : MonoBehaviour
     // 지형·텍스처가 전해상도로 렌더되고, 조명이 태양 직사광만으로 구성되게 한다.
     void ConfigureQuality()
     {
+        // 에디터/플레이어가 상한 없이 최대 fps로 재렌더해 GPU를 소진하는 것 방지.
+        // 측정 렌더는 요청 시 renderCamera.Render()로 수동 실행이라 영향 없음.
+        Application.targetFrameRate = 30;
+        QualitySettings.vSyncCount = 0;
         // 달: 대기 없음 — 주변광·안개 제거, 배경은 검정(우주)
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = Color.black;
