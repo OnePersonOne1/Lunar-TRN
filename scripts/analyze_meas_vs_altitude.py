@@ -100,6 +100,7 @@ def main() -> None:
         "valid_ratio": round(len(rows) / max(n_total, 1), 4),
         "note": "고도 bin별 연관→PnP 오차 (0 기준 로버스트 σ). 태양각은 프레임별 무작위(데이터셋).",
         "bins": bins,
+        "frames": [[round(float(v), 2) for v in r] for r in rows],  # [h_m, ex, ey, ez, n_match]
     }
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

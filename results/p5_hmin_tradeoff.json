@@ -1,0 +1,242 @@
+{
+  "meta": {
+    "git_hash": "65db3485953d37f30a555ab62958b2972e68ad36",
+    "config_hash": "14df37bb01462e580928adfd539a547ebb12c606f2ecc2d747efb0a9f73b4818",
+    "timestamp": "2026-08-29T02:00:25.252135+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "tau_s": 0.2,
+  "n_runs": 200,
+  "h_max_m": 30000.0,
+  "conditions": [
+    {
+      "h_min_m": 17000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        110.8,
+        97.3,
+        37.4
+      ],
+      "fp_rate": 0.1809,
+      "n_frames_calib": 923,
+      "cep_m": 49.5,
+      "cep_ci95_m": [
+        44.8,
+        57.9
+      ]
+    },
+    {
+      "h_min_m": 17000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        110.8,
+        97.3,
+        37.4
+      ],
+      "fp_rate": 0.1809,
+      "n_frames_calib": 923,
+      "cep_m": 120.8,
+      "cep_ci95_m": [
+        110.3,
+        131.6
+      ]
+    },
+    {
+      "h_min_m": 18000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        106.4,
+        94.7,
+        36.6
+      ],
+      "fp_rate": 0.1725,
+      "n_frames_calib": 887,
+      "cep_m": 53.7,
+      "cep_ci95_m": [
+        47.0,
+        63.2
+      ]
+    },
+    {
+      "h_min_m": 18000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        106.4,
+        94.7,
+        36.6
+      ],
+      "fp_rate": 0.1725,
+      "n_frames_calib": 887,
+      "cep_m": 120.1,
+      "cep_ci95_m": [
+        109.6,
+        134.8
+      ]
+    },
+    {
+      "h_min_m": 19000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        104.3,
+        92.3,
+        35.8
+      ],
+      "fp_rate": 0.1511,
+      "n_frames_calib": 854,
+      "cep_m": 54.7,
+      "cep_ci95_m": [
+        47.4,
+        63.6
+      ]
+    },
+    {
+      "h_min_m": 19000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        104.3,
+        92.3,
+        35.8
+      ],
+      "fp_rate": 0.1511,
+      "n_frames_calib": 854,
+      "cep_m": 127.6,
+      "cep_ci95_m": [
+        112.9,
+        138.4
+      ]
+    },
+    {
+      "h_min_m": 20000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        102.5,
+        90.3,
+        35.3
+      ],
+      "fp_rate": 0.1163,
+      "n_frames_calib": 808,
+      "cep_m": 59.4,
+      "cep_ci95_m": [
+        51.4,
+        65.2
+      ]
+    },
+    {
+      "h_min_m": 20000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        102.5,
+        90.3,
+        35.3
+      ],
+      "fp_rate": 0.1163,
+      "n_frames_calib": 808,
+      "cep_m": 127.2,
+      "cep_ci95_m": [
+        113.7,
+        140.8
+      ]
+    },
+    {
+      "h_min_m": 21000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        99.9,
+        86.4,
+        33.8
+      ],
+      "fp_rate": 0.0928,
+      "n_frames_calib": 765,
+      "cep_m": 66.7,
+      "cep_ci95_m": [
+        58.3,
+        74.5
+      ]
+    },
+    {
+      "h_min_m": 21000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        99.9,
+        86.4,
+        33.8
+      ],
+      "fp_rate": 0.0928,
+      "n_frames_calib": 765,
+      "cep_m": 126.1,
+      "cep_ci95_m": [
+        116.1,
+        142.7
+      ]
+    },
+    {
+      "h_min_m": 22000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        95.2,
+        80.9,
+        31.8
+      ],
+      "fp_rate": 0.0781,
+      "n_frames_calib": 704,
+      "cep_m": 75.8,
+      "cep_ci95_m": [
+        65.4,
+        91.2
+      ]
+    },
+    {
+      "h_min_m": 22000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        95.2,
+        80.9,
+        31.8
+      ],
+      "fp_rate": 0.0781,
+      "n_frames_calib": 704,
+      "cep_m": 138.7,
+      "cep_ci95_m": [
+        127.0,
+        152.4
+      ]
+    },
+    {
+      "h_min_m": 23000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        94.2,
+        83.0,
+        33.0
+      ],
+      "fp_rate": 0.0709,
+      "n_frames_calib": 635,
+      "cep_m": 89.0,
+      "cep_ci95_m": [
+        80.2,
+        103.9
+      ]
+    },
+    {
+      "h_min_m": 23000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        94.2,
+        83.0,
+        33.0
+      ],
+      "fp_rate": 0.0709,
+      "n_frames_calib": 635,
+      "cep_m": 149.5,
+      "cep_ci95_m": [
+        139.1,
+        164.1
+      ]
+    }
+  ],
+  "note": "밴드별 실측 σ·fp_rate를 주입한 통계 MC. iid 가정 — 실런의 시간상관 편향은 미포함."
+}
