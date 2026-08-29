@@ -41,7 +41,8 @@ class EKF:
         # 근거: 측정 편향이 지속되는 구간에서 첫 기각 후 S가 좁아 영구 기각(P6 진단).
         self.reject_streak_n = 0
         self.reject_inflate = 1.0
-        self._streak = 0
+        self.reject_inflate_max_n = 0   # 비행당 팽창 예산 (0이면 무제한) — 저품질 측정
+        self._streak = 0                # 구간에서 팽창을 반복하다 불량 측정을 삼키는 것 방지
         self.n_inflations = 0
 
     # ------------------------------------------------------------ 예측
@@ -78,7 +79,8 @@ class EKF:
         d2 = float(nu @ np.linalg.solve(S_inn, nu))
         if d2 > self.gate_chi2:
             self._streak += 1
-            if self.reject_streak_n > 0 and self._streak >= self.reject_streak_n:
+            budget_ok = self.reject_inflate_max_n <= 0 or self.n_inflations < self.reject_inflate_max_n
+            if self.reject_streak_n > 0 and self._streak >= self.reject_streak_n and budget_ok:
                 self.P_cov = self.P_cov * self.reject_inflate
                 self._streak = 0
                 self.n_inflations += 1

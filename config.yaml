@@ -46,6 +46,7 @@ ekf:
   delay_compensation: true
   reject_streak_n: 5           # 연속 기각 이 횟수면 P 팽창(재획득). 0이면 비활성
   reject_inflate: 4.0          # P 팽창 배율 (게이트 판정식 §2.4는 불변)
+  reject_inflate_max_n: 3      # 비행당 팽창 예산 — 저품질 구간에서 불량 측정 삼킴 방지
 
 measurement:
   mode: assumed                # assumed | calibrated (calibrated면 아래 file 사용)

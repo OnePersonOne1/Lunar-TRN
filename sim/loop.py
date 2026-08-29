@@ -89,6 +89,7 @@ def run_closed_loop(
         )
         ekf.reject_streak_n = int(cfg["ekf"].get("reject_streak_n", 0))
         ekf.reject_inflate = float(cfg["ekf"].get("reject_inflate", 1.0))
+        ekf.reject_inflate_max_n = int(cfg["ekf"].get("reject_inflate_max_n", 0))
 
     traj_t = np.empty(n_steps + 1)
     traj_true = np.empty((n_steps + 1, 6))
