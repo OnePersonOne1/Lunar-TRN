@@ -125,7 +125,36 @@ public static class SceneBuilder
                 tileOffset = Vector2.zero,
             };
             AssetDatabase.CreateAsset(layer, "Assets/LunarTerrainLayer.asset");
-            td.terrainLayers = new[] { layer };
+
+            // 패딩(사용 영역 북쪽) 반복 텍스처 억제: 검정 레이어를 알파맵으로 패딩에만 적용
+            var blackTex = new Texture2D(4, 4);
+            var px = new Color[16];
+            for (int i = 0; i < 16; i++) px[i] = Color.black;
+            blackTex.SetPixels(px);
+            blackTex.Apply();
+            AssetDatabase.CreateAsset(blackTex, "Assets/LunarPaddingBlack.asset");
+            var padLayer = new TerrainLayer
+            {
+                diffuseTexture = blackTex,
+                tileSize = new Vector2(10000f, 10000f),
+            };
+            AssetDatabase.CreateAsset(padLayer, "Assets/LunarPaddingLayer.asset");
+            td.terrainLayers = new[] { layer, padLayer };
+
+            int amapRes = 513;
+            td.alphamapResolution = amapRes;
+            float[,,] amap = new float[amapRes, amapRes, 2];
+            float northFrac = meta.size_m.north / meta.size_m.padded_square;
+            for (int j = 0; j < amapRes; j++)          // j: 지형 로컬 z (남→북)
+            {
+                bool used = (j + 0.5f) / amapRes <= northFrac;
+                for (int i = 0; i < amapRes; i++)
+                {
+                    amap[j, i, 0] = used ? 1f : 0f;
+                    amap[j, i, 1] = used ? 0f : 1f;
+                }
+            }
+            td.SetAlphamaps(0, 0, amap);
         }
         else
         {

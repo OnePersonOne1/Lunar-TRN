@@ -16,6 +16,8 @@ public class TrajectoryPlayback : MonoBehaviour
     public int captureFps = 30;
     public Vector3 chaseOffset = new Vector3(-900f, 350f, -550f); // 착륙선 기준 카메라 위치
     public int targetDisplay = 1;                      // 0=Display1, 1=Display2 (센서 미리보기와 분리)
+    public string overlayDir = "../frames/p6";         // P6 실런 탐지 오버레이 (t_c = 인덱스+1 초)
+    public int overlayDisplay = 2;                     // Display 3: 센서 카메라+크레이터 인식 화면
 
     private readonly List<float> _t = new();
     private readonly List<Vector3> _pos = new();       // Unity 좌표
@@ -25,6 +27,9 @@ public class TrajectoryPlayback : MonoBehaviour
     private int _frameIdx;
     private float _nextCapture;
     private int _capIdx;
+    private Texture2D _overlayTex;
+    private Material _overlayMat;
+    private int _overlayIdx = -1;
 
     void Start()
     {
@@ -51,7 +56,50 @@ public class TrajectoryPlayback : MonoBehaviour
         {
             _cam.targetDisplay = targetDisplay;
         }
+        SetupOverlayView();
         Debug.Log($"[TrajectoryPlayback] {_t.Count} rows, {_t[_t.Count - 1]:F0} s, x{timeScale}");
+    }
+
+    // Display 3: P6 실런의 센서 카메라+탐지 오버레이 프레임을 재생 시각에 동기해 표시.
+    // 다른 카메라 far plane(≤300 km) 밖 먼 좌표에 쿼드를 두어 장면 간섭을 피한다.
+    void SetupOverlayView()
+    {
+        if (!Directory.Exists(overlayDir))
+        {
+            Debug.LogWarning($"[TrajectoryPlayback] 오버레이 없음: {overlayDir} — Display 3 생략");
+            return;
+        }
+        Vector3 basePos = new Vector3(2000000f, 2000000f, 2000000f);
+        var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.name = "SensorOverlayQuad";
+        Destroy(quad.GetComponent<Collider>());
+        quad.transform.position = basePos;
+        _overlayTex = new Texture2D(2, 2);
+        _overlayMat = new Material(Shader.Find("Unlit/Texture"));
+        quad.GetComponent<Renderer>().material = _overlayMat;
+        var camGo = new GameObject("SensorViewCamera");
+        var cam = camGo.AddComponent<Camera>();
+        cam.orthographic = true;
+        cam.orthographicSize = 0.5f;
+        cam.nearClipPlane = 0.1f;
+        cam.farClipPlane = 10f;
+        cam.transform.position = basePos + new Vector3(0f, 0f, -1f);
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.black;
+        cam.targetDisplay = overlayDisplay;
+        cam.depth = 11f;
+    }
+
+    void UpdateOverlay(float t)
+    {
+        if (_overlayMat == null) return;
+        int idx = Mathf.Max(0, Mathf.FloorToInt(t) - 1);  // t_c = 인덱스 + 1 s
+        if (idx == _overlayIdx) return;
+        string path = Path.Combine(overlayDir, $"{idx:00000}.png");
+        if (!File.Exists(path)) return;                    // 밴드 밖: 마지막 프레임 유지
+        _overlayTex.LoadImage(File.ReadAllBytes(path));
+        _overlayMat.mainTexture = _overlayTex;
+        _overlayIdx = idx;
     }
 
     bool LoadCsv(string path)
@@ -110,6 +158,7 @@ public class TrajectoryPlayback : MonoBehaviour
         Vector3 off = chaseOffset * Mathf.Lerp(0.25f, 1.0f, h01);
         _cam.transform.position = p + off;
         _cam.transform.LookAt(p);
+        UpdateOverlay(t);
 
         if (captureFrames && _clock >= _nextCapture && _clock <= tEnd + 1f)
         {

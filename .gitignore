@@ -17,6 +17,7 @@ unity/*.slnx
 unity/Assets/LunarTerrainData.asset*
 unity/Assets/LunarTerrainLayer.asset*
 unity/Assets/LunarTexture.png*
+unity/Assets/LunarPadding*
 *.engine
 *.calib
 *.pt
