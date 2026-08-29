@@ -199,6 +199,10 @@ public static class SceneBuilder
         server.imageWidth = ImageSize;
         server.imageHeight = ImageSize;
 
-        Debug.Log("[SceneBuilder] 완료. Play 모드에서 RenderServer가 포트를 연다.");
+        // Play 진입 시 도메인 리로드가 디스크 상태를 다시 읽으므로, 알파맵 등
+        // 메모리 수정 사항을 반드시 저장한다 (미저장 시 패딩 스플랫이 원복됨).
+        EditorUtility.SetDirty(td);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[SceneBuilder] 완료(에셋 저장됨). Play 모드에서 RenderServer가 포트를 연다.");
     }
 }
