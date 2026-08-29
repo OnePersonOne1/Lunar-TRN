@@ -44,6 +44,8 @@ ekf:
   x0_error: [500.0, 500.0, 300.0, 5.0, 5.0, 3.0]        # 초기 추정 오차 1σ (시뮬에서 참값에 더함)
   gate_chi2: 11.345                                     # χ²_3(0.99)
   delay_compensation: true
+  reject_streak_n: 5           # 연속 기각 이 횟수면 P 팽창(재획득). 0이면 비활성
+  reject_inflate: 4.0          # P 팽창 배율 (게이트 판정식 §2.4는 불변)
 
 measurement:
   mode: assumed                # assumed | calibrated (calibrated면 아래 file 사용)

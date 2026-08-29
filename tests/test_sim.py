@@ -181,6 +181,22 @@ def test_gate_rejects_outlier_accepts_inlier(cfg: dict) -> None:
     np.testing.assert_array_equal(ekf2.x_hat, x0)  # 기각 시 상태 불변
 
 
+def test_gate_reject_streak_recovers(cfg: dict) -> None:
+    """연속 기각 N회 후 P 팽창으로 재획득: 편향 측정이 지속돼도 영구 기각되지 않는다."""
+    x0 = np.array([0.0, 0.0, 20000.0, 900.0, 0.0, -40.0])
+    ekf = _make_ekf(cfg, x0, 100.0, 1.0)
+    ekf.reject_streak_n = 3
+    ekf.reject_inflate = 4.0
+    R_meas = np.diag([25.0] * 3)
+    z_biased = x0[:3] + np.array([80.0, 0.0, 0.0])  # σ_S≈11.2의 ~7배 편향 → 기각 대상
+    results = [ekf.update(z_biased, R_meas)[0] for _ in range(12)]
+    assert not any(results[:3])          # 처음엔 기각
+    assert any(results), "P 팽창 후에도 재획득 실패"
+    # 팽창 없는 필터는 영구 기각
+    ekf2 = _make_ekf(cfg, x0, 100.0, 1.0)
+    assert not any(ekf2.update(z_biased, R_meas)[0] for _ in range(12))
+
+
 # ---------------------------------------------------------------- 측정 모델·τ 샘플러
 
 def test_stat_measurement_model(cfg: dict) -> None:

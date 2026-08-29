@@ -36,6 +36,13 @@ class EKF:
         self.t = float(t0)
         self.buffer_len = int(buffer_len)
         self._buf: list[tuple[float, np.ndarray, np.ndarray, np.ndarray, float]] = []
+        # 게이트 연쇄 기각 회복: 연속 reject_streak_n회 기각되면 P를 reject_inflate배 팽창해
+        # 재획득을 유도한다 (0이면 비활성). 게이트 판정식(§2.4)은 그대로다.
+        # 근거: 측정 편향이 지속되는 구간에서 첫 기각 후 S가 좁아 영구 기각(P6 진단).
+        self.reject_streak_n = 0
+        self.reject_inflate = 1.0
+        self._streak = 0
+        self.n_inflations = 0
 
     # ------------------------------------------------------------ 예측
 
@@ -70,7 +77,13 @@ class EKF:
         S_inn = self.P_cov[:3, :3] + R_meas
         d2 = float(nu @ np.linalg.solve(S_inn, nu))
         if d2 > self.gate_chi2:
+            self._streak += 1
+            if self.reject_streak_n > 0 and self._streak >= self.reject_streak_n:
+                self.P_cov = self.P_cov * self.reject_inflate
+                self._streak = 0
+                self.n_inflations += 1
             return False, d2
+        self._streak = 0
         K_gain = self.P_cov[:, :3] @ np.linalg.inv(S_inn)
         self.x_hat = self.x_hat + K_gain @ nu
         self.P_cov = self.P_cov - K_gain @ self.P_cov[:3, :]
