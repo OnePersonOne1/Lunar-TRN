@@ -15,6 +15,7 @@ public class TrajectoryPlayback : MonoBehaviour
     public string captureDir = "../frames/demo";
     public int captureFps = 30;
     public Vector3 chaseOffset = new Vector3(-900f, 350f, -550f); // 착륙선 기준 카메라 위치
+    public int targetDisplay = 1;                      // 0=Display1, 1=Display2 (센서 미리보기와 분리)
 
     private readonly List<float> _t = new();
     private readonly List<Vector3> _pos = new();       // Unity 좌표
@@ -37,7 +38,19 @@ public class TrajectoryPlayback : MonoBehaviour
         _cam.depth = 10f;                              // Main/기타 카메라보다 위에 표시
         _cam.clearFlags = CameraClearFlags.SolidColor;
         _cam.backgroundColor = Color.black;
-        if (captureFrames) Directory.CreateDirectory(captureDir);
+        // 캡처(ScreenCapture)는 Display 1만 찍으므로, 캡처 모드에선 Display 1로 강제하고
+        // 센서 미리보기(OnGUI)를 꺼서 착륙 장면만 영상에 담는다.
+        if (captureFrames)
+        {
+            _cam.targetDisplay = 0;
+            var rs = FindFirstObjectByType<RenderServer>();
+            if (rs != null) rs.previewOnScreen = false;
+            Directory.CreateDirectory(captureDir);
+        }
+        else
+        {
+            _cam.targetDisplay = targetDisplay;
+        }
         Debug.Log($"[TrajectoryPlayback] {_t.Count} rows, {_t[_t.Count - 1]:F0} s, x{timeScale}");
     }
 
