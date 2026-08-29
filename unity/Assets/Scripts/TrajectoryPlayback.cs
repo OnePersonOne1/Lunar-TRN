@@ -14,7 +14,7 @@ public class TrajectoryPlayback : MonoBehaviour
     public bool captureFrames = false;                 // Play 중 PNG 저장 (ffmpeg로 mp4)
     public string captureDir = "../frames/demo";
     public int captureFps = 30;
-    public Vector3 chaseOffset = new Vector3(-900f, 350f, -550f); // 착륙선 기준 카메라 위치
+    public Vector3 chaseOffset = new Vector3(-1100f, 320f, 0f); // 비행(동서 장축) 방향 후방 정렬
     public int targetDisplay = 1;                      // 0=Display1, 1=Display2 (센서 미리보기와 분리)
     public string overlayDir = "../frames/p6";         // P6 실런 탐지 오버레이 (t_c = 인덱스+1 초)
     public int overlayDisplay = 2;                     // Display 3: 센서 카메라+크레이터 인식 화면
