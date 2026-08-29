@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "git_hash": "81868cb06d21922d2ac5f8b9c430ba6a36a1d568",
+    "config_hash": "3e181c6e073efe99129a04a4dfdd2abd07d6ceaee46da6ddb94b898fd26991cc",
+    "timestamp": "2026-08-29T03:57:09.080769+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "conf": 0.25,
+  "fp32": {
+    "model": "runs/detect/runs/train/crater_s/weights/best.pt",
+    "mAP50": 0.24364678030975423,
+    "mAP50_95": 0.1371395733856948,
+    "n_frames": 95,
+    "tp": 515,
+    "fp": 204,
+    "fn": 3422,
+    "precision": 0.7162726008344924,
+    "recall": 0.13081026162052325,
+    "fp_per_frame": 2.1473684210526316
+  },
+  "int8": {
+    "model": "runs/export_s/crater_int8_ort.onnx",
+    "mAP50": 0.15684761233118577,
+    "mAP50_95": 0.08574918865652117,
+    "n_frames": 95,
+    "tp": 337,
+    "fp": 137,
+    "fn": 3600,
+    "precision": 0.7109704641350211,
+    "recall": 0.08559817119634239,
+    "fp_per_frame": 1.4421052631578948
+  }
+}

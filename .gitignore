@@ -28,3 +28,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 data/dataset/
+data/dataset_highlands/
