@@ -108,57 +108,37 @@ public static class SceneBuilder
         // 재컴파일(도메인 리로드) 때 파괴되어 체크무늬(missing texture)가 된다.
         if (File.Exists(texPath))
         {
+            // 패딩(사용 영역 북쪽)에 텍스처가 반복되지 않도록, 텍스처 자체를 지형 정사각
+            // 비율로 확장하고 위쪽(북쪽 패딩)을 검정으로 채운다. 레이어 1개, 알파맵 불필요.
             const string texAsset = "Assets/LunarTexture.png";
-            File.Copy(texPath, texAsset, true);
+            var texSrc = new Texture2D(2, 2);
+            texSrc.LoadImage(File.ReadAllBytes(texPath));      // 행0(위) = 북 → 픽셀 행0(아래) = 남
+            float northFrac = meta.size_m.north / meta.size_m.padded_square;
+            int padH = Mathf.RoundToInt(texSrc.height / northFrac);
+            var texPad = new Texture2D(texSrc.width, padH, TextureFormat.RGB24, false);
+            var fill = new Color32[texSrc.width * padH];       // 기본 0 = 검정
+            texPad.SetPixels32(fill);
+            texPad.SetPixels(0, 0, texSrc.width, texSrc.height, texSrc.GetPixels()); // 아래(남쪽) = 데이터
+            texPad.Apply();
+            File.WriteAllBytes(texAsset, texPad.EncodeToPNG());
             AssetDatabase.ImportAsset(texAsset);
             var imp = (TextureImporter)AssetImporter.GetAtPath(texAsset);
             imp.maxTextureSize = 4096;                    // 원본 3401px — 기본 2048 다운스케일 방지
             imp.npotScale = TextureImporterNPOTScale.None;
             imp.mipmapEnabled = true;
             imp.textureCompression = TextureImporterCompression.Uncompressed;
-            imp.wrapMode = TextureWrapMode.Repeat;
+            imp.wrapMode = TextureWrapMode.Clamp;
             imp.SaveAndReimport();
             var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texAsset);
             var layer = new TerrainLayer
             {
                 diffuseTexture = tex,
-                tileSize = new Vector2(meta.size_m.east, meta.size_m.north),
+                tileSize = new Vector2(meta.size_m.east, meta.size_m.padded_square),
                 tileOffset = Vector2.zero,
             };
             AssetDatabase.CreateAsset(layer, "Assets/LunarTerrainLayer.asset");
-
-            // 패딩(사용 영역 북쪽) 반복 텍스처 억제: 검정 레이어를 알파맵으로 패딩에만 적용
-            AssetDatabase.DeleteAsset("Assets/LunarPaddingBlack.asset");
-            AssetDatabase.DeleteAsset("Assets/LunarPaddingLayer.asset");
-            var blackTex = new Texture2D(4, 4);
-            var px = new Color[16];
-            for (int i = 0; i < 16; i++) px[i] = Color.black;
-            blackTex.SetPixels(px);
-            blackTex.Apply();
-            AssetDatabase.CreateAsset(blackTex, "Assets/LunarPaddingBlack.asset");
-            var padLayer = new TerrainLayer
-            {
-                diffuseTexture = blackTex,
-                tileSize = new Vector2(10000f, 10000f),
-            };
-            AssetDatabase.CreateAsset(padLayer, "Assets/LunarPaddingLayer.asset");
-            td.terrainLayers = new[] { layer, padLayer };
-
-            int amapRes = 513;
-            td.alphamapResolution = amapRes;
-            float[,,] amap = new float[amapRes, amapRes, 2];
-            float northFrac = meta.size_m.north / meta.size_m.padded_square;
-            for (int j = 0; j < amapRes; j++)          // j: 지형 로컬 z (남→북)
-            {
-                bool used = (j + 0.5f) / amapRes <= northFrac;
-                for (int i = 0; i < amapRes; i++)
-                {
-                    amap[j, i, 0] = used ? 1f : 0f;
-                    amap[j, i, 1] = used ? 0f : 1f;
-                }
-            }
-            td.SetAlphamaps(0, 0, amap);
-            Debug.Log($"[SceneBuilder] 패딩 검정 스플랫 적용 (used northFrac={northFrac:F3})");
+            td.terrainLayers = new[] { layer };
+            Debug.Log($"[SceneBuilder] 패딩 검정 텍스처 적용 ({texSrc.width}x{padH}, 데이터 {texSrc.height}행)");
         }
         else
         {
