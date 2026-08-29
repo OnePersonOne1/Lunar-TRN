@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "git_hash": "7be9b6a812fae393f74829f69cf33a023fa95bad",
+    "config_hash": "14df37bb01462e580928adfd539a547ebb12c606f2ecc2d747efb0a9f73b4818",
+    "timestamp": "2026-08-29T01:13:24.661485+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "model": "runs/export/crater_int8_ort.onnx",
+  "n_frames_total": 1000,
+  "n_valid": 944,
+  "valid_ratio": 0.944,
+  "note": "고도 bin별 연관→PnP 오차 (0 기준 로버스트 σ). 태양각은 프레임별 무작위(데이터셋).",
+  "bins": [
+    {
+      "h_lo_km": 16.0,
+      "h_hi_km": 17.0,
+      "n_frames": 21,
+      "sigma_xyz_m": [
+        242.6,
+        1222.1,
+        367.8
+      ],
+      "sigma_horiz_m": 1245.9,
+      "p90_norm_m": 3940.9,
+      "n_match_med": 8.0
+    },
+    {
+      "h_lo_km": 17.0,
+      "h_hi_km": 18.0,
+      "n_frames": 36,
+      "sigma_xyz_m": [
+        420.1,
+        192.2,
+        98.9
+      ],
+      "sigma_horiz_m": 461.9,
+      "p90_norm_m": 1049.8,
+      "n_match_med": 4.0
+    },
+    {
+      "h_lo_km": 18.0,
+      "h_hi_km": 19.0,
+      "n_frames": 33,
+      "sigma_xyz_m": [
+        614.5,
+        672.4,
+        207.5
+      ],
+      "sigma_horiz_m": 910.9,
+      "p90_norm_m": 7230.2,
+      "n_match_med": 4.0
+    },
+    {
+      "h_lo_km": 19.0,
+      "h_hi_km": 20.0,
+      "n_frames": 46,
+      "sigma_xyz_m": [
+        1437.7,
+        1297.5,
+        99.3
+      ],
+      "sigma_horiz_m": 1936.6,
+      "p90_norm_m": 7912.4,
+      "n_match_med": 5.0
+    },
+    {
+      "h_lo_km": 20.0,
+      "h_hi_km": 21.0,
+      "n_frames": 43,
+      "sigma_xyz_m": [
+        599.6,
+        754.6,
+        97.4
+      ],
+      "sigma_horiz_m": 963.8,
+      "p90_norm_m": 1760.6,
+      "n_match_med": 8.0
+    },
+    {
+      "h_lo_km": 21.0,
+      "h_hi_km": 22.0,
+      "n_frames": 61,
+      "sigma_xyz_m": [
+        252.9,
+        197.7,
+        72.1
+      ],
+      "sigma_horiz_m": 321.0,
+      "p90_norm_m": 934.1,
+      "n_match_med": 17.0
+    },
+    {
+      "h_lo_km": 22.0,
+      "h_hi_km": 23.0,
+      "n_frames": 69,
+      "sigma_xyz_m": [
+        134.5,
+        74.6,
+        27.4
+      ],
+      "sigma_horiz_m": 153.8,
+      "p90_norm_m": 350.9,
+      "n_match_med": 27.0
+    },
+    {
+      "h_lo_km": 23.0,
+      "h_hi_km": 24.0,
+      "n_frames": 62,
+      "sigma_xyz_m": [
+        139.0,
+        123.9,
+        25.0
+      ],
+      "sigma_horiz_m": 186.2,
+      "p90_norm_m": 423.6,
+      "n_match_med": 30.0
+    },
+    {
+      "h_lo_km": 24.0,
+      "h_hi_km": 25.0,
+      "n_frames": 77,
+      "sigma_xyz_m": [
+        56.4,
+        64.2,
+        15.2
+      ],
+      "sigma_horiz_m": 85.4,
+      "p90_norm_m": 187.4,
+      "n_match_med": 35.0
+    },
+    {
+      "h_lo_km": 25.0,
+      "h_hi_km": 26.0,
+      "n_frames": 70,
+      "sigma_xyz_m": [
+        95.5,
+        53.4,
+        19.9
+      ],
+      "sigma_horiz_m": 109.5,
+      "p90_norm_m": 172.3,
+      "n_match_med": 32.0
+    },
+    {
+      "h_lo_km": 26.0,
+      "h_hi_km": 27.0,
+      "n_frames": 83,
+      "sigma_xyz_m": [
+        92.0,
+        82.7,
+        31.5
+      ],
+      "sigma_horiz_m": 123.7,
+      "p90_norm_m": 370.0,
+      "n_match_med": 30.0
+    },
+    {
+      "h_lo_km": 27.0,
+      "h_hi_km": 28.0,
+      "n_frames": 91,
+      "sigma_xyz_m": [
+        119.9,
+        87.9,
+        45.3
+      ],
+      "sigma_horiz_m": 148.7,
+      "p90_norm_m": 263.8,
+      "n_match_med": 36.0
+    },
+    {
+      "h_lo_km": 28.0,
+      "h_hi_km": 29.0,
+      "n_frames": 105,
+      "sigma_xyz_m": [
+        68.9,
+        77.0,
+        67.0
+      ],
+      "sigma_horiz_m": 103.3,
+      "p90_norm_m": 242.0,
+      "n_match_med": 38.0
+    },
+    {
+      "h_lo_km": 29.0,
+      "h_hi_km": 30.0,
+      "n_frames": 140,
+      "sigma_xyz_m": [
+        106.4,
+        102.1,
+        23.7
+      ],
+      "sigma_horiz_m": 147.4,
+      "p90_norm_m": 204.0,
+      "n_match_med": 43.0
+    }
+  ]
+}
