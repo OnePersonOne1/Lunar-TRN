@@ -77,7 +77,8 @@ public class RenderServer : MonoBehaviour
         {
             t.basemapDistance = 500000f;            // 저해상도 base map 회피 (버전에 따라 클램프될 수 있음)
             t.heightmapPixelError = 1f;             // 지형 기하 LOD 최소화
-            t.terrainData.baseMapResolution = 2048; // basemapDistance 클램프 대비 base map 해상도 상향
+            // 주의: baseMapResolution을 런타임에 바꾸면 알파맵(패딩 검정 스플랫)이 초기화된다.
+            // 해상도는 SceneBuilder(빌드 시)가 설정한다 — 여기서는 절대 대입하지 않는다.
         }
         Debug.Log($"[RenderServer] quality set: basemapDistance={(Terrain.activeTerrain != null ? Terrain.activeTerrain.basemapDistance : -1f)}");
     }

@@ -97,6 +97,7 @@ public static class SceneBuilder
         // --- TerrainData
         var td = new TerrainData();
         td.heightmapResolution = res;
+        td.baseMapResolution = 2048;   // 런타임에 바꾸면 알파맵이 초기화되므로 여기서만 설정
         float ySize = Mathf.Max(meta.z_max_m - meta.z_min_m, 1.0f);
         // heightmap은 정사각(padded_square) 격자: 지형 x=z=padded_square
         td.size = new Vector3(meta.size_m.padded_square, ySize, meta.size_m.padded_square);
