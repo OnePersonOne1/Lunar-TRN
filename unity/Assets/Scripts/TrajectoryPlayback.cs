@@ -10,9 +10,7 @@ using UnityEngine;
 public class TrajectoryPlayback : MonoBehaviour
 {
     public string trajCsv = "../frames/traj_demo.csv"; // 프로젝트 루트(unity/) 기준
-    public float timeScaleBand = 5.0f;                 // TRN 밴드(탐지 표시 중) 배속 — 볼거리 구간
-    public float timeScaleCoast = 30.0f;               // 관성 구간 배속 — 빨리 감기
-    public float bandEndT = 100.0f;                    // 밴드 이탈 시각(초) — 이후 coast 배속
+    public float timeScale = 8.0f;                     // 단일 배속 — Display 2/3/4 공통 시계
     public bool captureFrames = false;                 // Play 중 PNG 저장 (ffmpeg로 mp4)
     public string captureDir = "../frames/demo";
     public int captureFps = 30;
@@ -20,9 +18,12 @@ public class TrajectoryPlayback : MonoBehaviour
     public int targetDisplay = 1;                      // 0=Display1, 1=Display2 (센서 미리보기와 분리)
     public string overlayDir = "../frames/p6";         // P6 실런 탐지 오버레이 (t_c = 인덱스+1 초)
     public int overlayDisplay = 2;                     // Display 3: 센서 카메라+크레이터 인식 화면
+    public int telemetryDisplay = 3;                   // Display 4: 고도/속력/다운레인지 그래프
 
     private readonly List<float> _t = new();
     private readonly List<Vector3> _pos = new();       // Unity 좌표
+    private readonly List<Vector3> _vel = new();       // Unity 좌표 (csv에 v열 있을 때)
+    private TelemetryView _telemetry;
     private Transform _lander;
     private Camera _cam;
     private float _clock;
@@ -59,8 +60,9 @@ public class TrajectoryPlayback : MonoBehaviour
             _cam.targetDisplay = targetDisplay;
         }
         SetupOverlayView();
-        Debug.Log($"[TrajectoryPlayback] {_t.Count} rows, {_t[_t.Count - 1]:F0} s, "
-                  + $"x{timeScaleBand}(band)/x{timeScaleCoast}(coast)");
+        _telemetry = gameObject.AddComponent<TelemetryView>();
+        _telemetry.Init(_t, _pos, _vel, telemetryDisplay);
+        Debug.Log($"[TrajectoryPlayback] {_t.Count} rows, {_t[_t.Count - 1]:F0} s, x{timeScale}");
     }
 
     // Display 3: P6 실런의 센서 카메라+탐지 오버레이 프레임을 재생 시각에 동기해 표시.
@@ -119,6 +121,9 @@ public class TrajectoryPlayback : MonoBehaviour
             if (p.Length < 4 || !float.TryParse(p[0], out float t)) continue; // 헤더 스킵
             _t.Add(t);
             _pos.Add(RenderServer.LToUnity(float.Parse(p[1]), float.Parse(p[2]), float.Parse(p[3])));
+            _vel.Add(p.Length >= 7
+                ? RenderServer.LToUnity(float.Parse(p[4]), float.Parse(p[5]), float.Parse(p[6]))
+                : Vector3.zero);
         }
         return _t.Count >= 2;
     }
@@ -148,7 +153,7 @@ public class TrajectoryPlayback : MonoBehaviour
 
     void Update()
     {
-        float scale = _clock < bandEndT ? timeScaleBand : timeScaleCoast;
+        float scale = timeScale;
         _clock += Time.deltaTime * scale;
         float tEnd = _t[_t.Count - 1];
         float t = Mathf.Min(_clock, tEnd);
@@ -163,6 +168,7 @@ public class TrajectoryPlayback : MonoBehaviour
         _cam.transform.position = p + off;
         _cam.transform.LookAt(p);
         UpdateOverlay(t);
+        if (_telemetry != null) _telemetry.SetTime(t);
 
         if (captureFrames && _clock >= _nextCapture && _clock <= tEnd + 1f)
         {

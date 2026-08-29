@@ -146,9 +146,10 @@ def main() -> None:
         tp.parent.mkdir(parents=True, exist_ok=True)
         tr = res["traj_true"]
         with open(tp, "w", encoding="utf-8") as fh:
-            fh.write("t,x,y,z\n")
+            fh.write("t,x,y,z,vx,vy,vz\n")
             for t, row in zip(res["traj_t"], tr):
-                fh.write(f"{t:.2f},{row[0]:.2f},{row[1]:.2f},{row[2]:.2f}\n")
+                fh.write(f"{t:.2f},{row[0]:.2f},{row[1]:.2f},{row[2]:.2f},"
+                         f"{row[3]:.3f},{row[4]:.3f},{row[5]:.3f}\n")
         print(f"traj: {tp} ({len(tr)} rows)")
 
     if args.figs_prefix:
