@@ -145,13 +145,15 @@ class UnityMeasurementModel:
             cv2.putText(c, text, (12, 34), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 5)
             cv2.putText(c, text, (12, 34), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
 
-        # gt/: EKF 예측 pose로 투영한 카탈로그 원 (초록)
+        # gt/: EKF 예측 pose로 투영한 카탈로그 원 (초록) — 라벨 N은 화면 안 중심만
         gt = img.copy()
+        h_img, w_img = img.shape[:2]
         n_gt = 0
         for i in np.flatnonzero(valid):
             rad = f * self.catalog[i, 3] / z_C[i] / 2.0
             cv2.circle(gt, (int(uv[i, 0]), int(uv[i, 1])), int(rad), (0, 255, 0), 2)
-            n_gt += 1
+            if 0 <= uv[i, 0] < w_img and 0 <= uv[i, 1] < h_img:
+                n_gt += 1
         put_label(gt, f"CATALOG (GT) N={n_gt}", (0, 255, 0))
         gt_dir = self.frames_dir / "gt"
         gt_dir.mkdir(exist_ok=True)
