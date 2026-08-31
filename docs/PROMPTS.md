@@ -127,6 +127,40 @@ Unity 서버가 config unity.port에 떠 있다. scripts/check_projection.py를 
 끝: STATUS.md, 커밋 "P7: preliminary MC".
 ```
 
+## P7b · 직렬 처리량 모델·오검출률 스윕·s 보정·SLIM 표 (9/2~9/3)
+```
+이번 세션은 P7b다. 계산은 내가 tmux에서 돌린다. 신규 기능 마감은 9/4 24시이고 이 세션과 (조건부) P7c가 마지막이다. 시작 규칙(CLAUDE.md §4)대로 pytest 후 상태 5줄, 계획 10단계 이내. 시작 전에 미커밋 문서 변경(docs/limitations.md, docs/team_status.md 등)이 있으면 "docs: …"로 먼저 따로 커밋해 P7b 커밋에 섞이지 않게 한다. 아래 순서를 지키고, 한 항목이 2시간 또는 5회 시도에서 막히면 그 항목을 버리고 다음으로 간다.
+0) 전제 전환. config measurement.mode를 calibrated로 바꾸고 시작한다(run_mc에 mode CLI가 없어 config가 유일한 스위치다 — 이 세션의 기준 조건 전부가 보정 통계 기준). 겸사: scripts/run_mc.py의 산포도 제목 "(assumed measurement stats)" 하드코딩을 measurement_R의 실제 소스에 따라 assumed/calibrated로 표기하게 고친다(§2.4 표기 규칙).
+1) 직렬 처리 모델. config에 tau.serial(기본 false)을 추가한다. sim/loop.py에서 촬영 시점 t_next가 직전 프레임의 도착 시각 busy_until보다 앞이면 촬영을 건너뛰고 n_dropped를 센다. 촬영하면 busy_until = t_next + τ_k. τ 샘플은 실제 촬영할 때만 추출한다(건너뛴 프레임에서 rng를 소비하지 않는다 — empirical 모드 결정론). unity 모드의 wallclock τ에도 같은 규칙. 반환 dict에 n_meas와 n_dropped 추가. serial false는 기존 결과를 비트 단위로 재현해야 한다. 테스트를 먼저 쓴다: 같은 seed에서 serial false의 landing_xy가 P7과 동일, 카메라 1 Hz·τ=2.5 s 상수·serial true에서 밴드 내 측정 수가 false 대비 약 1/3.
+2) 보상 조건 τ 스윕(직렬). config에 tau.sweep_serial_s = [0.05, 1.0, 2.0, 5.0]와 tau.measured_points(파일 경로·라벨 쌍: results/tau_trt_int8.json "n INT8 GPU", results/tau_ort_cpu_int8.json "n INT8 CPU", results/tau_ort_cpu_fp32.json "n FP32 CPU", results/s/tau_ort_cpu_int8.json "s INT8 CPU", results/s/tau_ort_cpu_fp32.json "s FP32 CPU")을 추가하고, scripts/sweep_tau.py에 --serial on/off, --comp on/off/both, --measured-points를 붙인다. 실측 점의 τ는 파일의 median_s를 읽는다. 조건: 격자 4점+실측 5점, delay_comp on, serial on, n = mc.n_runs. results/p7b_tau_serial.json에 조건별 tau_s, label, cep_m, cep_ci95_m, ellipse95, n_runs, mean_n_meas, mean_n_dropped, mean_gate_accept. figs/p7b_cep_vs_tau_serial.png: x축 log τ, 왼쪽 축 CEP+CI, 오른쪽 축 밴드 내 측정 수, 1/camera.rate_hz 위치에 세로선, 실측 5점 라벨. 미보상 곡선은 그리지 않는다.
+3) 오검출 오프셋 불일치 수정. sim/measurement.py StatMeasurementModel이 fp_offset을 config(2000 m)에서만 읽는다. measurement.mode가 calibrated이고 파일에 fp_offset_med_m(현재 381.4 m)이 있으면 그 값을 쓰도록 고치고, 사용값을 반환 dict와 results meta에 fp_offset_used_m으로 남긴다. 기준 조건(τ = n INT8 CPU median, comp on, serial on)을 보정 오프셋으로 재실행 → results/p7b_baseline.json, 2000 m 결과와의 차이를 STATUS에 숫자로만 적는다.
+4) 오검출률 스윕 — 연구계획서 산출물 ④, 이 세션의 최우선 신규 산출물. config에 measurement.fp_sweep = [0.0, 0.05, 0.10, 0.20, 0.30]을 추가하고 scripts/sweep_fp.py를 sweep_tau.py 구조로 만든다. τ = n INT8 CPU median, comp on, serial on, 오프셋은 보정값, n = mc.n_runs. results/p7b_fp_sweep.json에 조건별 CEP, CI, 게이트 기각 비율, 수락 측정 수. figs/p7b_cep_vs_fp.png: 왼쪽 축 CEP, 오른쪽 축 기각 비율, 보정 오검출률 0.101 위치에 세로선.
+5) s 모델 측정 보정. scripts/calibrate_measurement.py를 s INT8 ONNX로 val 프레임에 돌려 results/measurement_model_s.json을 만든다 — 경로 주의: runs/export_s/crater_int8_ort.onnx (runs/export/는 n 모델이다). Unity 불필요(저장된 val 프레임 사용). 그 σ·오검출률로 기준 조건 MC 1회 → results/p7b_mc_s.json, n 기준 조건과 나란히 STATUS에 적는다. (근거: "mAP 동급인데 CEP 차이" 주장은 s를 s 자신의 측정 통계로 평가해야 성립한다.)
+6) SLIM 비교표. P7 프롬프트의 results/p7_slim_comparison.json이 실행되지 않았다. 같은 명세·같은 주장 수위(plausibility)로 만든다.
+7) (시간 남으면) ΔV. run_closed_loop 반환에 delta_v_mps = Σ|a_T|·dt를 추가하고 run_mc·aggregate_mc가 평균·p50·p95를 집계. 기준 조건과 measurement="truth" 실행(P1 시나리오, 이상 ΔV)의 ΔV를 results/p7b_deltav.json에 저장. 해석은 쓰지 않는다(팀원 2의 로켓 방정식 입력용). 밀리면 이 항목만 버린다.
+끝: STATUS.md 갱신, 커밋 "P7b: serial throughput model, fp sweep, s calibration, SLIM table (+deltaV)".
+```
+
+## P7c · 카메라 지향·PnP 방식 민감도 (9/4, 조건부)
+```
+착수 조건: P7b가 9/3 안에 완료·검증(pytest 통과, 산출물 확인)됐을 때만 이 세션을 연다. 아니면 건너뛰고 "문서 갱신" 세션으로 간다 — 이 실험은 핵심 주장(τ·오검출→CEP) 바깥의 민감도 분석이고, 안 하면 limitations.md 서술로 방어한다. 슬라이드 동결 6일 전에 전 모듈이 import하는 camera.py를 건드리는 작업임을 유념하고, 비트 재현 테스트가 깨지면 즉시 되돌린다.
+이번 세션은 P7c다. 사용자 승인(2026-08-31): 계약 §2.2에 카메라 지향 파라미터를 추가하는 것을 허용한다. 자세 상태·자세 동역학·자이로·EKF 상태 확장은 여전히 §1 범위 밖이며 하지 않는다. CLAUDE.md §2.2를 아래 (1)에 맞게 고치고 개정 날짜를 적는다.
+1) 카메라 지향. perception/camera.py에서 R_cam_from_L(theta_deg) 함수화: R_{C←L} = R_att(θ)·diag(1, −1, −1), R_att는 East 축(x_C) 기준 회전 — 시선이 남북(교차트랙)으로 기운다. 의도된 선택이다: 교차트랙 축은 속도·지연으로 인한 along-track(East) 오차와 결합하지 않아 순수 기하 민감도를 분리하며, 이론선 h·Δθ는 축 선택과 무관하다. config에 camera.pointing_known_deg(기본 0.0). project와 backproject_ray가 이 함수를 쓰고, θ=0에서 기존 결과가 비트 단위로 재현되어야 한다. 테스트: θ=0 재현, θ=1°에서 nadir 지상점 투영이 약 f·tan(1°) px 이동.
+2) 자세 고정 PnP. perception/pnp.py에 solve_pnp_known_R 추가. 회전 기지 시 (u−c_x)·z_C − f·x_C = 0, (v−c_y)·z_C − f·y_C = 0이 r에 선형 → 최소제곱, RANSAC은 재투영 오차 기준 기존 임계값. config에 measurement.pnp_mode = free | known_att(기본 free). 테스트: 무잡음 투영에서 r 복원 1e-6 m 이내, 이상치 20%에서도 복원.
+3) 스윕(축소 기본). config에 camera.pointing_sweep_deg = [0.0, 0.1, 0.3] (기본. 3까지 순조로우면 0.05와 1.0을 추가한다). calibrate_measurement.py에 --pnp-mode와 --pointing-known-deg를 붙여 val 프레임(nadir 렌더)에 대해 known_att 모드로 Δθ 각 값, free 모드로 Δθ 0과 최대값을 돌린다. 렌더는 nadir이고 필터가 아는 자세만 Δθ만큼 틀린 지식 오차 실험이다. 각 조건의 σ·오검출률을 results/p7c_pointing_{mode}_{deg}.json에 저장하고, 각 통계로 기준 조건 MC(τ = n INT8 CPU median, comp on, serial on)를 돌려 results/p7c_pointing_sweep.json에 모은다. figs/p7c_sigma_cep_vs_pointing.png: x축 Δθ, 왼쪽 축 수평 σ, 오른쪽 축 CEP, known_att/free 마커 구분, h·Δθ(h = trn_band 중앙값) 이론선 점선. 해석 문장은 쓰지 않는다.
+4) (선택, 9/4 24시 전 여유 시에만) 구동기 오차. config에 actuator.dir_err_deg(기본 0)와 actuator.scale_err(기본 0)를 추가하고, sim/loop.py에서 참값 동역학과 IMU에 들어가는 a_T에만 회전·스케일 적용(유도 명령은 그대로). 1°·0.05로 기준 조건 MC 1회 → results/p7c_actuator.json. 시간 없으면 하지 않는다.
+끝: STATUS.md 갱신, 커밋 "P7c: camera pointing and PnP mode sensitivity".
+```
+
+## 문서 갱신 (P7b/P7c 직후, 9/5 오전)
+```
+1) docs/limitations.md §3(기타 범위 한계)에 추가 — 절 번호 주의: §2는 유도 법칙 한계다. 항목: 촬영 시각 불확실성 미포함 / 병렬 파이프라인 가정(serial false)과 직렬 결과의 차이(results/p7b_tau_serial.json 수치 인용) / TRN 밴드 하한 22 km 아래 IMU 단독 구간 / 카메라 지향 nadir 가정·PnP 자유 회전(P7c를 했으면 결과 파일 참조, 건너뛰었으면 미정량 한계로 서술) / 구동기 이상화(짐벌·추력 편향·질량 변화 없음).
+2) P8 프롬프트의 신규성 절 교체. 기여는 네 가지: ① 공개 폐루프 테스트베드 ② INT8이 mAP 손실에도 측정 σ·오검출률·CEP를 바꾸지 않음 ③ 촬영 시각 보상 필터에서 지연 자체는 CEP를 바꾸지 않았고 지연이 들어오는 경로는 측정률과 오검출임 — 단 이 문장은 results/p7b_tau_serial.json 수치로 확인한 뒤 채택하고, 결과가 다르면(직렬에서 τ 증가 시 CEP 상승 등) 문장을 결과에 맞춘다 ④ 폐루프가 설계값을 바꾼 사례(h_min 17 vs 22 km, 게이트 연쇄 기각과 공분산 팽창). "실측 τ 주입"과 미보상 곡선의 n 대 s 배율은 차별점으로 쓰지 않는다. 같은 절의 구 밴드 수치 "16.5~30 km"도 22~30 km로 갱신한다. 선행연구 표: streaming perception 2020, planner-centric metrics 2020, LunaNet 2020, AST 2022, Aerospace 2025, ION NAVIGATION 2024, arXiv 2606.14776(Candan & Servadio, DL 크레이터 TRN — 궤도 영상·개루프)을 τ 취급 | 종단점 | 폐루프 여부 | 공개 여부 4열로 넣는다.
+3) docs/symbols.md는 P8 산출물이라 아직 없다. 없으면 이 세션에서 생성하고 θ(카메라 피치), Δθ(지향 지식 오차), busy_until, n_dropped, delta_v_mps를 포함한다(§2 전체 대응표는 P8에서 마저 채운다).
+4) P8 프롬프트에 "docs/qa_facts.md 생성 시 P7b·P7c results 파일을 숫자 출처에 포함한다"를 한 줄 추가한다.
+커밋 "docs: positioning update, limitations".
+```
+
 ## P8 · 발표 자산·Q&A 준비 (9/8~9/10)
 ```
 @docs/ref/온보드 경량 AI 크레이터 탐지 기반 달 착륙 지형상대항법(TRN)의 폐루프 성능 정량화.pdf 를 읽고, 슬라이드 자산이 제출된 계획서 범위를 벗어나지 않는지 확인하면서 작업해라.
