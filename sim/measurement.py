@@ -93,7 +93,13 @@ class UnityMeasurementModel:
 
         img = self.client.render(r_true, self.sun_az, self.sun_el, frame_id=frame_id, t=t)
         t0 = _time.perf_counter()
-        centers = self.detector.centers(img)
+        boxes = self.detector.detect(img)  # (n, 6) [x0, y0, x1, y1, conf, cls]
+        centers = (
+            np.empty((0, 2))
+            if len(boxes) == 0
+            else np.column_stack([(boxes[:, 0] + boxes[:, 2]) / 2.0,
+                                  (boxes[:, 1] + boxes[:, 3]) / 2.0])
+        )
         pairs = associate(centers, r_pred, self.catalog, self.cfg)
         res = {"r_PnP": None, "valid": False, "n_inliers": 0, "reproj_err_px": None}
         if len(pairs) >= 4:
@@ -103,7 +109,7 @@ class UnityMeasurementModel:
         tau_wall = _time.perf_counter() - t0
 
         if self.frames_dir is not None:
-            self._save_overlay(img, centers, r_pred, frame_id)
+            self._save_overlay(img, boxes, centers, r_pred, frame_id)
         z = res["r_PnP"]
         return {
             "z": None if z is None else np.asarray(z, dtype=float),
@@ -117,15 +123,53 @@ class UnityMeasurementModel:
         }
 
     def _save_overlay(
-        self, img: np.ndarray, centers: np.ndarray, r_pred: np.ndarray, frame_id: int
+        self,
+        img: np.ndarray,
+        boxes: np.ndarray,
+        centers: np.ndarray,
+        r_pred: np.ndarray,
+        frame_id: int,
     ) -> None:
+        """세 벌 저장: 합본(루트, 기존 호환), gt/(카탈로그 투영), det/(YOLO 박스).
+
+        gt/·det/는 시연 Display 3·4가 나란히 재생해 GT 대비 실추론을 비교한다.
+        """
         import cv2
 
         from perception.camera import K_cam, project
 
-        canvas = img.copy()
         f = K_cam(self.cfg)[0, 0]
         uv, z_C, valid = project(self.catalog[:, :3], r_pred, self.cfg)
+
+        def put_label(c: np.ndarray, text: str, color: tuple) -> None:
+            cv2.putText(c, text, (12, 34), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 5)
+            cv2.putText(c, text, (12, 34), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+
+        # gt/: EKF 예측 pose로 투영한 카탈로그 원 (초록)
+        gt = img.copy()
+        n_gt = 0
+        for i in np.flatnonzero(valid):
+            rad = f * self.catalog[i, 3] / z_C[i] / 2.0
+            cv2.circle(gt, (int(uv[i, 0]), int(uv[i, 1])), int(rad), (0, 255, 0), 2)
+            n_gt += 1
+        put_label(gt, f"CATALOG (GT) N={n_gt}", (0, 255, 0))
+        gt_dir = self.frames_dir / "gt"
+        gt_dir.mkdir(exist_ok=True)
+        cv2.imwrite(str(gt_dir / f"{frame_id:05d}.png"), gt)
+
+        # det/: YOLO 탐지 박스 + conf (주황)
+        det = img.copy()
+        for x0, y0, x1, y1, conf, _cls in boxes:
+            cv2.rectangle(det, (int(x0), int(y0)), (int(x1), int(y1)), (0, 160, 255), 2)
+            cv2.putText(det, f"{conf:.2f}", (int(x0), max(int(y0) - 4, 12)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 160, 255), 1)
+        put_label(det, f"YOLO DETECTION N={len(boxes)}", (0, 160, 255))
+        det_dir = self.frames_dir / "det"
+        det_dir.mkdir(exist_ok=True)
+        cv2.imwrite(str(det_dir / f"{frame_id:05d}.png"), det)
+
+        # 합본(루트): 기존 형식 유지 — 초록 원 + 빨간 탐지 십자
+        canvas = img.copy()
         for i in np.flatnonzero(valid):
             rad = f * self.catalog[i, 3] / z_C[i] / 2.0
             cv2.circle(canvas, (int(uv[i, 0]), int(uv[i, 1])), int(rad), (0, 255, 0), 1)

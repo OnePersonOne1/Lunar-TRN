@@ -16,9 +16,10 @@ public class TrajectoryPlayback : MonoBehaviour
     public int captureFps = 30;
     public Vector3 chaseOffset = new Vector3(-1100f, 320f, 0f); // 비행(동서 장축) 방향 후방 정렬
     public int targetDisplay = 1;                      // 0=Display1, 1=Display2 (센서 미리보기와 분리)
-    public string overlayDir = "../frames/p6";         // P6 실런 탐지 오버레이 (t_c = 인덱스+1 초)
-    public int overlayDisplay = 2;                     // Display 3: 센서 카메라+크레이터 인식 화면
-    public int telemetryDisplay = 3;                   // Display 4: 고도/속력/다운레인지 그래프
+    public string overlayDir = "../frames/p6";         // P6 실런 오버레이 루트 (t_c = 인덱스+1 초)
+    public int gtDisplay = 2;                          // Display 3: 카탈로그 투영 (GT) — overlayDir/gt
+    public int detDisplay = 3;                         // Display 4: YOLO 실추론 박스 — overlayDir/det
+    public int telemetryDisplay = 4;                   // Display 5: 고도/속력/다운레인지 그래프
 
     private readonly List<float> _t = new();
     private readonly List<Vector3> _pos = new();       // Unity 좌표
@@ -30,9 +31,14 @@ public class TrajectoryPlayback : MonoBehaviour
     private int _frameIdx;
     private float _nextCapture;
     private int _capIdx;
-    private Texture2D _overlayTex;
-    private Material _overlayMat;
-    private int _overlayIdx = -1;
+    private class OverlayPanel
+    {
+        public string dir;
+        public Texture2D tex;
+        public Material mat;
+        public int idx = -1;
+    }
+    private readonly List<OverlayPanel> _overlays = new();
 
     void Start()
     {
@@ -65,27 +71,46 @@ public class TrajectoryPlayback : MonoBehaviour
         Debug.Log($"[TrajectoryPlayback] {_t.Count} rows, {_t[_t.Count - 1]:F0} s, x{timeScale}");
     }
 
-    // Display 3: P6 실런의 센서 카메라+탐지 오버레이 프레임을 재생 시각에 동기해 표시.
+    // Display 3/4: P6 실런의 카탈로그 투영(GT)·YOLO 탐지 오버레이를 재생 시각에 동기해 표시.
     // 다른 카메라 far plane(≤300 km) 밖 먼 좌표에 쿼드를 두어 장면 간섭을 피한다.
     void SetupOverlayView()
     {
         if (!Directory.Exists(overlayDir))
         {
-            Debug.LogWarning($"[TrajectoryPlayback] 오버레이 없음: {overlayDir} — Display 3 생략");
+            Debug.LogWarning($"[TrajectoryPlayback] 오버레이 없음: {overlayDir} — Display 3/4 생략");
             return;
         }
+        // gt/·det/가 없으면(구 프레임) 합본(루트)으로 대체 — 재생성 안내 로그
+        string gtDir = Path.Combine(overlayDir, "gt");
+        string detDir = Path.Combine(overlayDir, "det");
+        if (!Directory.Exists(gtDir) || !Directory.Exists(detDir))
+        {
+            Debug.LogWarning("[TrajectoryPlayback] gt/·det/ 프레임 없음 — 합본으로 대체. " +
+                             "run_closed_loop.py --measurement unity --frames-dir frames/p6 재실행 필요");
+            gtDir = overlayDir;
+            detDir = overlayDir;
+        }
+        CreateOverlayPanel(gtDir, gtDisplay, new Vector3(-4000f, 150000f, -500000f), "GtOverlay");
+        CreateOverlayPanel(detDir, detDisplay, new Vector3(4000f, 150000f, -500000f), "DetOverlay");
+    }
+
+    void CreateOverlayPanel(string dir, int display, Vector3 basePos, string name)
+    {
         // float 정밀도 주의: 수백만 좌표는 쿼드가 틀어진다 (TelemetryView 참고)
-        Vector3 basePos = new Vector3(0f, 150000f, -500000f);
         const float Q = 100f;
         var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        quad.name = "SensorOverlayQuad";
+        quad.name = name + "Quad";
         Destroy(quad.GetComponent<Collider>());
         quad.transform.position = basePos;
         quad.transform.localScale = new Vector3(Q, Q, 1f);
-        _overlayTex = new Texture2D(2, 2);
-        _overlayMat = new Material(Shader.Find("Unlit/Texture"));
-        quad.GetComponent<Renderer>().material = _overlayMat;
-        var camGo = new GameObject("SensorViewCamera");
+        var panel = new OverlayPanel
+        {
+            dir = dir,
+            tex = new Texture2D(2, 2),
+            mat = new Material(Shader.Find("Unlit/Texture")),
+        };
+        quad.GetComponent<Renderer>().material = panel.mat;
+        var camGo = new GameObject(name + "Camera");
         var cam = camGo.AddComponent<Camera>();
         cam.orthographic = true;
         cam.orthographicSize = Q * 0.5f;
@@ -94,20 +119,23 @@ public class TrajectoryPlayback : MonoBehaviour
         cam.transform.position = basePos + new Vector3(0f, 0f, -100f);
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
-        cam.targetDisplay = overlayDisplay;
+        cam.targetDisplay = display;
         cam.depth = 11f;
+        _overlays.Add(panel);
     }
 
     void UpdateOverlay(float t)
     {
-        if (_overlayMat == null) return;
         int idx = Mathf.Max(0, Mathf.FloorToInt(t) - 1);  // t_c = 인덱스 + 1 s
-        if (idx == _overlayIdx) return;
-        string path = Path.Combine(overlayDir, $"{idx:00000}.png");
-        if (!File.Exists(path)) return;                    // 밴드 밖: 마지막 프레임 유지
-        _overlayTex.LoadImage(File.ReadAllBytes(path));
-        _overlayMat.mainTexture = _overlayTex;
-        _overlayIdx = idx;
+        foreach (var p in _overlays)
+        {
+            if (idx == p.idx) continue;
+            string path = Path.Combine(p.dir, $"{idx:00000}.png");
+            if (!File.Exists(path)) continue;              // 밴드 밖: 마지막 프레임 유지
+            p.tex.LoadImage(File.ReadAllBytes(path));
+            p.mat.mainTexture = p.tex;
+            p.idx = idx;
+        }
     }
 
     bool LoadCsv(string path)
