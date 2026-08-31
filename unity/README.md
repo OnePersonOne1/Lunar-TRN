@@ -35,8 +35,8 @@ Unity는 센서 모사 전용이다. 좌표계 매핑(x=East, y=Up, z=North, L �
 1. 궤적 생성(저장소 루트): `.venv\Scripts\python scripts\run_closed_loop.py --measurement truth --traj-out frames\traj_demo.csv --out results\tmp_truth.json`
 2. Unity에서 지형 빌드 상태(**Build Scene**) 확인 → 메뉴 **LunarTRN → Add Demo Playback**
 3. Play → 간이 착륙선(박스+다리)이 궤적을 따라 하강, 추적 카메라가 Game 뷰에 표시 (350 s → 약 29 s)
-   - 디스플레이 구성(Game 뷰 탭에서 Display 선택): 1=센서 미리보기, 2=착륙 추적, 3=카탈로그 투영(GT), 4=YOLO 실추론, 5=텔레메트리 그래프
-   - Display 3/4용 프레임: `.venv\Scripts\python scripts\run_closed_loop.py --measurement unity --tau wallclock --seed 0 --frames-dir frames\p6 --out results\tmp_p6_frames.json` (Unity Play 상태에서 실행 — `frames/p6/gt/`, `frames/p6/det/` 생성)
+   - 디스플레이 구성(Game 뷰 탭에서 Display 선택): 1=센서 미리보기, 2=착륙 추적, 3=탐지 오버레이(초록 원=매칭 카탈로그, 보라 원=미탐지, 주황 십자+conf=매칭 탐지, 보라 십자=비매칭 탐지), 4=텔레메트리 그래프
+   - Display 3용 프레임: `.venv\Scripts\python scripts\run_closed_loop.py --measurement unity --tau wallclock --seed 0 --frames-dir frames\p6 --out results\tmp_p6_frames.json` (Unity Play 상태에서 실행)
 4. 영상으로 뽑으려면: Hierarchy의 DemoPlayback 선택 → Inspector에서 `captureFrames` 체크 → 다시 Play
    → `frames/demo/demo_*.png` 저장 → `ffmpeg -framerate 30 -i frames/demo/demo_%05d.png -pix_fmt yuv420p figs/slides/demo.mp4`
 5. 렌더 서버(TrnCamera)와 독립이라 시연 재생 중에도 측정 경로는 영향 없음.

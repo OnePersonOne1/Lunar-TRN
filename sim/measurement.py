@@ -109,7 +109,7 @@ class UnityMeasurementModel:
         tau_wall = _time.perf_counter() - t0
 
         if self.frames_dir is not None:
-            self._save_overlay(img, boxes, centers, r_pred, frame_id)
+            self._save_overlay(img, boxes, centers, r_pred, frame_id, pairs)
         z = res["r_PnP"]
         return {
             "z": None if z is None else np.asarray(z, dtype=float),
@@ -129,54 +129,51 @@ class UnityMeasurementModel:
         centers: np.ndarray,
         r_pred: np.ndarray,
         frame_id: int,
+        pairs: list,
     ) -> None:
-        """세 벌 저장: 합본(루트, 기존 호환), gt/(카탈로그 투영), det/(YOLO 박스).
+        """합본 한 장: 연관(associate) 결과로 색 구분.
 
-        gt/·det/는 시연 Display 3·4가 나란히 재생해 GT 대비 실추론을 비교한다.
+        초록 원 = 카탈로그·탐지 매칭 / 보라 원 = 카탈로그 미탐지(missed) /
+        주황 십자+conf = 매칭 탐지 / 보라 십자+conf = 비매칭 탐지(FP 또는 D_min 미만).
         """
         import cv2
 
         from perception.camera import K_cam, project
 
+        green, orange, purple = (0, 255, 0), (0, 160, 255), (230, 60, 200)
+        matched_det = {d for d, _ in pairs}
+        matched_cat = {c for _, c in pairs}
+
+        canvas = img.copy()
+        h_img, w_img = img.shape[:2]
         f = K_cam(self.cfg)[0, 0]
         uv, z_C, valid = project(self.catalog[:, :3], r_pred, self.cfg)
-
-        def put_label(c: np.ndarray, text: str, color: tuple) -> None:
-            cv2.putText(c, text, (12, 34), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 5)
-            cv2.putText(c, text, (12, 34), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
-
-        # gt/: EKF 예측 pose로 투영한 카탈로그 원 (초록) — 라벨 N은 화면 안 중심만
-        gt = img.copy()
-        h_img, w_img = img.shape[:2]
-        n_gt = 0
+        n_miss = 0
         for i in np.flatnonzero(valid):
+            on_screen = 0 <= uv[i, 0] < w_img and 0 <= uv[i, 1] < h_img
+            if not on_screen and i not in matched_cat:
+                continue  # 화면 밖 미매칭은 매칭 후보가 아님 — 잡음 줄이기
             rad = f * self.catalog[i, 3] / z_C[i] / 2.0
-            cv2.circle(gt, (int(uv[i, 0]), int(uv[i, 1])), int(rad), (0, 255, 0), 2)
-            if 0 <= uv[i, 0] < w_img and 0 <= uv[i, 1] < h_img:
-                n_gt += 1
-        put_label(gt, f"CATALOG (GT) N={n_gt}", (0, 255, 0))
-        gt_dir = self.frames_dir / "gt"
-        gt_dir.mkdir(exist_ok=True)
-        cv2.imwrite(str(gt_dir / f"{frame_id:05d}.png"), gt)
+            if i not in matched_cat:
+                n_miss += 1
+            cv2.circle(canvas, (int(uv[i, 0]), int(uv[i, 1])), int(rad),
+                       green if i in matched_cat else purple, 2)
+        for j, (u, v) in enumerate(centers):
+            c = orange if j in matched_det else purple
+            cv2.drawMarker(canvas, (int(u), int(v)), c, cv2.MARKER_CROSS, 16, 2)
+            cv2.putText(canvas, f"{boxes[j, 4]:.2f}", (int(u) + 6, int(v) - 6),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 3)
+            cv2.putText(canvas, f"{boxes[j, 4]:.2f}", (int(u) + 6, int(v) - 6),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, c, 1)
 
-        # det/: YOLO 탐지 박스 + conf (주황)
-        det = img.copy()
-        for x0, y0, x1, y1, conf, _cls in boxes:
-            cv2.rectangle(det, (int(x0), int(y0)), (int(x1), int(y1)), (0, 160, 255), 2)
-            cv2.putText(det, f"{conf:.2f}", (int(x0), max(int(y0) - 4, 12)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 160, 255), 1)
-        put_label(det, f"YOLO DETECTION N={len(boxes)}", (0, 160, 255))
-        det_dir = self.frames_dir / "det"
-        det_dir.mkdir(exist_ok=True)
-        cv2.imwrite(str(det_dir / f"{frame_id:05d}.png"), det)
+        def label(text: str, y: int, color: tuple) -> None:
+            cv2.putText(canvas, text, (12, y), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 5)
+            cv2.putText(canvas, text, (12, y), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
-        # 합본(루트): 기존 형식 유지 — 초록 원 + 빨간 탐지 십자
-        canvas = img.copy()
-        for i in np.flatnonzero(valid):
-            rad = f * self.catalog[i, 3] / z_C[i] / 2.0
-            cv2.circle(canvas, (int(uv[i, 0]), int(uv[i, 1])), int(rad), (0, 255, 0), 1)
-        for u, v in centers:
-            cv2.drawMarker(canvas, (int(u), int(v)), (0, 0, 255), cv2.MARKER_CROSS, 16, 2)
+        n_fp = len(centers) - len(matched_det)
+        label(f"MATCHED {len(pairs)}", 34, green)
+        label(f"MISSED {n_miss}", 68, purple)
+        label(f"UNMATCHED DET {n_fp}", 102, purple)
         cv2.imwrite(str(self.frames_dir / f"{frame_id:05d}.png"), canvas)
 
     def close(self) -> None:
