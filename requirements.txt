@@ -21,3 +21,4 @@ onnx
 onnxslim
 openvino
 pytest
+imageio-ffmpeg
