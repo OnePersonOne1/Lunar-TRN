@@ -175,6 +175,9 @@ public class TrajectoryPlayback : MonoBehaviour
 
         if (captureFrames && _clock >= _nextCapture && _clock <= tEnd + 1f)
         {
+            // Play 도중 체크박스를 켠 경우에도 동작하도록 폴더를 여기서 보장.
+            // 단, 카메라 Display 1 전환은 Start에서만 하므로 제대로 찍으려면 Play 재시작 권장.
+            if (!Directory.Exists(captureDir)) Directory.CreateDirectory(captureDir);
             ScreenCapture.CaptureScreenshot(Path.Combine(captureDir, $"demo_{_capIdx++:00000}.png"));
             _nextCapture += scale / captureFps;
         }
