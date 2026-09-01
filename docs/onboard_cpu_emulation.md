@@ -27,8 +27,9 @@ results/tau_*.json, results/p7b_tau_serial{,_compoff}.json.
 
 SLIM의 VBN(크레이터 탐지+매칭)은 SMU 내 영상처리 보드의 **Microsemi RTG4**
 (방사선 내성 flash FPGA)가 수행했다. 촬영→결과 ≤5 s, 하강 중 7개 구역에서
-이산(discrete) 세션으로 운용. 알고리즘은 고전 기하 방식(삼각형 유사 매칭 TSM),
-CNN 아님.
+이산(discrete) 세션으로 운용. **DL/CNN이 아니다**: 탐지는 크레이터 패치의 PCA
+외형 기저(데이터로 만든 선형 템플릿 부분공간) 기반 패턴 인식, 매칭은 삼각형 유사
+불변량(TSM) — 둘 다 고전·선형 계열이라 RTG4 로직에 올릴 수 있었다.
 
 RTG4(RT4G150) 공표 사양: 로직 151,824 LE(300 MHz급 패브릭), **math block 462개**
 (18×18 곱셈+44-bit 누산, 250 MHz 파이프라인) → **DSP 피크 ~230 GOPS**.

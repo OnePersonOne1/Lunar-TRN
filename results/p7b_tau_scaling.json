@@ -1,0 +1,242 @@
+{
+  "meta": {
+    "git_hash": "bb29d2df2b5e9df8212b96bef1a52340e81d970f",
+    "config_hash": "b34e727f8169c9f9423e3e59a5d1f50d419a7aa28a11073b8969aae5bd4e1775",
+    "timestamp": "2026-09-01T05:38:57.481097+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "note": "환산 τ = 실측 τ × 1스레드 벤치 성능비(1차 근사). 격자 밖 외삽 금지. RTG4급 FPGA 0.3~1.5 s는 docs/onboard_cpu_emulation.md §1b 문헌 기반 추정",
+  "frame_period_s": 1.0,
+  "grid_max_s": 5.0,
+  "fpga_est_s": [
+    0.3,
+    1.5
+  ],
+  "measured_table": [
+    {
+      "config": "n INT8 CPU",
+      "tau_ms": 195.69865002995357,
+      "cep_comp_on_m": 110.80243848677398,
+      "ci_on": [
+        97.88333598915032,
+        134.01058834405134
+      ],
+      "cep_comp_off_m": 159.86688414724404,
+      "ci_off": [
+        144.19228025993223,
+        170.7472870220574
+      ]
+    },
+    {
+      "config": "n FP32 CPU",
+      "tau_ms": 219.01895001064986,
+      "cep_comp_on_m": 110.80239010176774,
+      "ci_on": [
+        98.01763828064409,
+        132.46719828751887
+      ],
+      "cep_comp_off_m": 164.95268860442545,
+      "ci_off": [
+        151.64272520776365,
+        179.26322648666832
+      ]
+    },
+    {
+      "config": "s INT8 CPU",
+      "tau_ms": 376.45455001620576,
+      "cep_comp_on_m": 110.80200272405045,
+      "ci_on": [
+        98.0164640655379,
+        130.11082936446263
+      ],
+      "cep_comp_off_m": 241.6830984836348,
+      "ci_off": [
+        224.6790729166685,
+        254.60337836151817
+      ]
+    },
+    {
+      "config": "s FP32 CPU",
+      "tau_ms": 536.6491500171833,
+      "cep_comp_on_m": 110.80161473804083,
+      "ci_on": [
+        98.01694028482963,
+        130.92380897088148
+      ],
+      "cep_comp_off_m": 323.0478273464443,
+      "ci_off": [
+        310.3707658258626,
+        336.5525144150927
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "effect": "양자화 (n)",
+      "from": "n FP32 CPU",
+      "to": "n INT8 CPU",
+      "tau_gain_ms": 23.32029998069629,
+      "cep_off_from_m": 164.95268860442545,
+      "cep_off_to_m": 159.86688414724404,
+      "cep_off_delta_pct": -3.083189792303249,
+      "significant_ci95": false,
+      "cep_on_from_m": 110.80239010176774,
+      "cep_on_to_m": 110.80243848677398
+    },
+    {
+      "effect": "양자화 (s)",
+      "from": "s FP32 CPU",
+      "to": "s INT8 CPU",
+      "tau_gain_ms": 160.19460000097752,
+      "cep_off_from_m": 323.0478273464443,
+      "cep_off_to_m": 241.6830984836348,
+      "cep_off_delta_pct": -25.186589097704097,
+      "significant_ci95": true,
+      "cep_on_from_m": 110.80161473804083,
+      "cep_on_to_m": 110.80200272405045
+    },
+    {
+      "effect": "모델 경량화 (INT8)",
+      "from": "s INT8 CPU",
+      "to": "n INT8 CPU",
+      "tau_gain_ms": 180.7558999862522,
+      "cep_off_from_m": 241.6830984836348,
+      "cep_off_to_m": 159.86688414724404,
+      "cep_off_delta_pct": -33.852683472580864,
+      "significant_ci95": true,
+      "cep_on_from_m": 110.80200272405045,
+      "cep_on_to_m": 110.80243848677398
+    },
+    {
+      "effect": "모델 경량화 (FP32)",
+      "from": "s FP32 CPU",
+      "to": "n FP32 CPU",
+      "tau_gain_ms": 317.6302000065334,
+      "cep_off_from_m": 323.0478273464443,
+      "cep_off_to_m": 164.95268860442545,
+      "cep_off_delta_pct": -48.93861693503167,
+      "significant_ci95": true,
+      "cep_on_from_m": 110.80161473804083,
+      "cep_on_to_m": 110.80239010176774
+    }
+  ],
+  "scaled_classes": [
+    {
+      "class": "차세대 HPSC급 (벤치 동급 자릿수 — 가정 ×1)",
+      "config": "n INT8 CPU",
+      "tau_scaled_s": [
+        0.19569865002995357,
+        0.19569865002995357
+      ],
+      "verdict": "평탄 구간 — 보상 시 흡수"
+    },
+    {
+      "class": "차세대 HPSC급 (벤치 동급 자릿수 — 가정 ×1)",
+      "config": "n FP32 CPU",
+      "tau_scaled_s": [
+        0.21901895001064986,
+        0.21901895001064986
+      ],
+      "verdict": "평탄 구간 — 보상 시 흡수"
+    },
+    {
+      "class": "차세대 HPSC급 (벤치 동급 자릿수 — 가정 ×1)",
+      "config": "s INT8 CPU",
+      "tau_scaled_s": [
+        0.37645455001620576,
+        0.37645455001620576
+      ],
+      "verdict": "평탄 구간 — 보상 시 흡수"
+    },
+    {
+      "class": "차세대 HPSC급 (벤치 동급 자릿수 — 가정 ×1)",
+      "config": "s FP32 CPU",
+      "tau_scaled_s": [
+        0.5366491500171833,
+        0.5366491500171833
+      ],
+      "verdict": "평탄 구간 — 보상 시 흡수"
+    },
+    {
+      "class": "GR740급",
+      "config": "n INT8 CPU",
+      "tau_scaled_s": [
+        13.338368659113552,
+        18.71970850202249
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    },
+    {
+      "class": "GR740급",
+      "config": "n FP32 CPU",
+      "tau_scaled_s": [
+        14.92782652372343,
+        20.950430163881357
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    },
+    {
+      "class": "GR740급",
+      "config": "s INT8 CPU",
+      "tau_scaled_s": [
+        25.65827393673026,
+        36.010056479616935
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    },
+    {
+      "class": "GR740급",
+      "config": "s FP32 CPU",
+      "tau_scaled_s": [
+        36.57676842652476,
+        51.333597112919186
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    },
+    {
+      "class": "HR5000/RAD750급",
+      "config": "n INT8 CPU",
+      "tau_scaled_s": [
+        19.889690283398892,
+        24.86211285424862
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    },
+    {
+      "class": "HR5000/RAD750급",
+      "config": "n FP32 CPU",
+      "tau_scaled_s": [
+        22.25983204912394,
+        27.824790061404926
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    },
+    {
+      "class": "HR5000/RAD750급",
+      "config": "s INT8 CPU",
+      "tau_scaled_s": [
+        38.26068500959299,
+        47.82585626199125
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    },
+    {
+      "class": "HR5000/RAD750급",
+      "config": "s FP32 CPU",
+      "tau_scaled_s": [
+        54.541946932476634,
+        68.1774336655958
+      ],
+      "verdict": "격자 밖 — 성립 불가(외삽 금지)"
+    }
+  ],
+  "sources": {
+    "comp_on": "results/p7b_tau_serial.json",
+    "comp_off": "results/p7b_tau_serial_compoff.json",
+    "bench": "results/p7b_cpu_bench.json"
+  }
+}

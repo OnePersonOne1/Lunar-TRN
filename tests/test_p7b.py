@@ -133,3 +133,20 @@ def test_bench_cpu_parsers() -> None:
     dh = mod.parse_dhrystone("Dhrystones per Second:      17570000.0\n")
     assert dh["dmips"] == pytest.approx(10000.0)
     assert mod.parse_dhrystone("nothing here") == {}
+
+
+def test_tau_scaling_helpers() -> None:
+    """make_tau_scaling의 CI 분리 판정·환산 τ 판정."""
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location(
+        "make_tau_scaling", Path("scripts/make_tau_scaling.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    assert mod.ci_separated([310.0, 337.0], [225.0, 255.0]) is True
+    assert mod.ci_separated([144.0, 171.0], [152.0, 179.0]) is False
+    assert mod.verdict(0.5, 1.0, 5.0) == "평탄 구간 — 보상 시 흡수"
+    assert mod.verdict(2.0, 1.0, 5.0) == "드롭 영역 — 측정 손실로 악화"
+    assert mod.verdict(20.0, 1.0, 5.0) == "격자 밖 — 성립 불가(외삽 금지)"
