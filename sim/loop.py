@@ -18,6 +18,7 @@ def run_closed_loop(
     tau: float | str | None = None,
     fp_rate: float | None = None,
     fp_offset: float | None = None,
+    t_c_jitter: float | None = None,
     delay_comp: bool | None = None,
     measurement: str = "stat",
     detector_path: str | None = None,
@@ -50,6 +51,9 @@ def run_closed_loop(
     h_min = float(cfg["trn_band"]["h_min_m"])
     h_max = float(cfg["trn_band"]["h_max_m"])
     serial = bool(cfg["tau"].get("serial", False))  # 직렬 처리: 처리 중(busy)에는 촬영 생략
+    # 촬영 타임스탬프 오차 1σ [s] — 보상이 되감는 시각의 불확실성. 0이면 rng 미소비(비트 재현 유지)
+    jitter = (float(cfg["tau"].get("t_c_jitter_s", 0.0))
+              if t_c_jitter is None else float(t_c_jitter))
     if delay_comp is None:
         delay_comp = bool(cfg["ekf"]["delay_compensation"])
 
@@ -78,7 +82,7 @@ def run_closed_loop(
             tau_max = float(cfg["tau"]["constant_s"]) * 10.0  # 버퍼 여유 (실측은 보통 이보다 짧다)
         else:
             tau_max = tau_sampler.max_tau
-        buffer_len = int(math.ceil((tau_max + spf * dt) / dt)) + 2
+        buffer_len = int(math.ceil((tau_max + spf * dt + 4.0 * jitter) / dt)) + 2
         x0_err = rng.normal(0.0, np.asarray(cfg["ekf"]["x0_error"], dtype=float))
         ekf = EKF(
             x + x0_err,
@@ -155,7 +159,13 @@ def run_closed_loop(
                         tau_k = float(tau) if tau is not None else tau_sampler.sample()
                     busy_until = t_next + tau_k
                     if valid:
-                        heapq.heappush(pending, (t_next + tau_k, seq, t_next, z, tau_k))
+                        t_c_used = t_next
+                        if jitter > 0.0 and delay_comp:  # 미보상은 t_c 미사용 — rng도 미소비
+                            delta = float(np.clip(rng.normal(0.0, jitter),
+                                                  -4.0 * jitter, 4.0 * jitter))
+                            t_c_used = min(t_next + delta, t_next + tau_k - dt)
+                            t_c_used = max(t_c_used, dt)
+                        heapq.heappush(pending, (t_next + tau_k, seq, t_c_used, z, tau_k))
                         n_meas += 1
                     seq += 1
             while pending and pending[0][0] <= t_next + 1e-9:

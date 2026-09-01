@@ -106,6 +106,33 @@ def test_fp_offset_calibrated(cfg: dict, tmp_path) -> None:
     assert m3.fp_offset == float(cfg["measurement"]["fp_offset_m"])
 
 
+def test_t_c_jitter(cfg: dict) -> None:
+    """타임스탬프 지터: 0이면 비트 동일(rng 미소비), 보상 on에서만 결과를 바꾼다."""
+    base = run_closed_loop(cfg, 5, tau=0.5)
+    explicit0 = run_closed_loop(cfg, 5, tau=0.5, t_c_jitter=0.0)
+    assert base["landing_xy"].tolist() == explicit0["landing_xy"].tolist()
+
+    jit_on = run_closed_loop(cfg, 5, tau=0.5, t_c_jitter=0.3)
+    assert jit_on["landing_xy"].tolist() != base["landing_xy"].tolist()
+
+    # 미보상은 t_c를 쓰지 않으므로 지터가 rng 스트림조차 건드리지 않아야 한다
+    off0 = run_closed_loop(cfg, 5, tau=0.5, delay_comp=False)
+    off_j = run_closed_loop(cfg, 5, tau=0.5, delay_comp=False, t_c_jitter=0.3)
+    assert off0["landing_xy"].tolist() == off_j["landing_xy"].tolist()
+
+
+def test_camera_rate_override(cfg: dict) -> None:
+    """카메라 레이트를 메모리에서 올리면 밴드 내 측정 수가 비례해서 는다."""
+    cfg2 = copy.deepcopy(cfg)
+    cfg2["camera"]["rate_hz"] = 2.0
+    r1 = run_closed_loop(cfg, 11, tau=0.05)
+    r2 = run_closed_loop(cfg2, 11, tau=0.05)
+    assert r1["n_meas"] > 0
+    ratio = r2["n_meas"] / r1["n_meas"]
+    # 궤적·밴드 체류가 레이트에 따라 달라져 정확히 2는 아님 (11시드 실측 2.37)
+    assert 1.6 <= ratio <= 2.6, f"측정 수 비율 {ratio:.2f} (기대 ~2)"
+
+
 def test_bench_cpu_parsers() -> None:
     """bench_cpu의 CoreMark/Dhrystone 출력 파서."""
     import importlib.util

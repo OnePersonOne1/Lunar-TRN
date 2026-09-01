@@ -18,6 +18,7 @@ camera:
   H: 1024
   fov_v_deg: 60.0
   rate_hz: 1.0
+  rate_sweep_hz: [1.0, 2.0, 5.0]  # 프레임 주기 축 스윕(P7b+, 스크립트 전용) — imu.rate_hz의 약수여야 함
 
 catalog:
   D_min_m: 1000.0
@@ -62,6 +63,8 @@ tau:
   mode: constant               # constant | empirical
   constant_s: 0.5
   serial: false                # true면 직렬 처리: 직전 프레임 처리(τ) 중에는 촬영 생략(드롭)
+  t_c_jitter_s: 0.0            # 촬영 타임스탬프 오차 1σ [s] — 0이면 비활성(비트 재현 유지)
+  t_c_jitter_sweep_s: [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5]  # 지터 스윕 (보상 성립 조건)
   empirical_file: results/tau_ort_cpu_int8.json
   sweep_s: [0.05, 0.2, 0.5, 1.0, 2.0, 5.0]
   sweep_serial_s: [0.05, 1.0, 2.0, 5.0]   # 직렬 모드 τ 격자 (P7b)
