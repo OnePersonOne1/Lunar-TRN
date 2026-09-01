@@ -23,6 +23,35 @@ results/tau_*.json, results/p7b_tau_serial{,_compoff}.json.
   195.7 ms 등)은 "차세대(HPSC급) 온보드" 프록시**로 해석한다. 레거시 CPU 기준으로는
   낙관적 하한이다.
 
+## 1b. FPGA 경로 — SLIM이 실제로 쓴 하드웨어 (2026-09-01 추가 검토)
+
+SLIM의 VBN(크레이터 탐지+매칭)은 SMU 내 영상처리 보드의 **Microsemi RTG4**
+(방사선 내성 flash FPGA)가 수행했다. 촬영→결과 ≤5 s, 하강 중 7개 구역에서
+이산(discrete) 세션으로 운용. 알고리즘은 고전 기하 방식(삼각형 유사 매칭 TSM),
+CNN 아님.
+
+RTG4(RT4G150) 공표 사양: 로직 151,824 LE(300 MHz급 패브릭), **math block 462개**
+(18×18 곱셈+44-bit 누산, 250 MHz 파이프라인) → **DSP 피크 ~230 GOPS**.
+
+YOLO11n INT8을 RTG4급에 올린다면 (1차 추정, 계산 병기):
+- 연산량: yolo11n 1024px ≈ 33 GOP/추론 (640px 6.5 GFLOPs의 해상도 비례 환산 ×2 ops/MAC).
+- τ ≈ 33 GOP ÷ (230 GOPS × 실효율): 실효율 30~50%(가속기 설계 양호) → **0.3~0.5 s**,
+  10~20%(외부 메모리 대역 제약: 가중치 2.6 MB > 온칩 RAM ~0.65 MB) → **0.7~1.4 s**.
+- 즉 **RTG4급 FPGA + CNN은 τ ≈ 0.3~1.5 s** — 우리 프레임 주기(1 s) 임계의 양쪽에
+  걸치는, 스윕이 실제로 커버하는 구간이다. SLIM의 고전 파이프라인(≤5 s)은 우리
+  τ=5 s 격자점(보상 250 m / 미보상 2160 m)에 대응한다.
+
+단 SLIM과의 직접 비교 주의: SLIM은 τ가 커도 측정 σ가 극히 작아(고도 500 m에서
+수평 오차 <1 m) 이산 보정만으로 충분했다. 우리 τ=5 s CEP 수치는 **우리 σ(~85 m)**
+기준이므로 "SLIM이 250 m였다"는 뜻이 아니다 — 지연 체급의 대응점일 뿐이다.
+
+시사점: 온보드 구현 경로는 3단으로 정리된다.
+① 레거시 rad-hard CPU — 소프트웨어 CNN 불가(§2). ② **RTG4급 FPGA — CNN INT8이
+τ 임계 근방에서 성립 가능성**(양자화는 이 경로의 전제조건: FPGA 곱셈기는 INT 연산,
+INT8이어야 자원·대역이 맞음). ③ 차세대 HPSC/NPU — 현재 실측 그대로(τ 0.2~0.5 s,
+평탄 구간). 10월 후보: FPGA 경로의 τ를 문헌(우주용 CNN 가속기 구현 사례)으로
+보강하거나 HLS 자원 견적으로 정밀화.
+
 ## 2. 격차를 반영한 τ 환산 (파생 계산)
 
 n INT8 CPU 실측 τ median 195.7 ms 기준:
@@ -30,6 +59,7 @@ n INT8 CPU 실측 τ median 195.7 ms 기준:
 | 가정 온보드 | 환산 τ | 프레임 주기(1 s) 대비 | 스윕 결과로 본 CEP |
 |---|---|---|---|
 | HPSC급 (≈×1) | ~0.2 s | 이하 — 드롭 없음 | 보상 110.8 m (평탄 구간) |
+| RTG4급 FPGA+CNN (§1b 추정) | 0.3~1.5 s | 임계 양쪽 | 보상 110.8 m(<1 s)~177.8 m(2 s 방향) |
 | GR740급 (×68~96) | 13~19 s | 초과 — 드롭 지배 | τ=5 s 외삽 밖: 보상 250 m↑, 미보상 2160 m↑ |
 | HR5000/RAD750급 (×102~127) | 20~25 s | 초과 | 소프트웨어 YOLO TRN 성립 불가 |
 
@@ -51,5 +81,6 @@ n INT8 CPU 실측 τ median 195.7 ms 기준:
 수치는 표에 계산식과 함께만 제시한다.
 
 출처: HR5000 — wdic.org/w/SCI/HR5000, NEC SpaceWire WG 2008; RAD750 — BAE/Wikipedia;
-GR740 — Gaisler Product Brief 2024-12; HPSC — Microchip white paper 2024; SLIM RTG4 —
-Acta Astronautica Vol.226 (2025).
+GR740 — Gaisler Product Brief 2024-12; HPSC — Microchip white paper 2024; SLIM RTG4·VBN·TSM —
+Acta Astronautica Vol.226 (2025), JAXA ISAS cosmos 해설, ISHII et al. TSM;
+RTG4 사양 — Microchip RTG4 FPGA Datasheet/Technical Brief (462 math blocks, ~230 GOPS).
