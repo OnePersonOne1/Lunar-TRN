@@ -66,6 +66,7 @@ def main() -> None:
             "serial": bool(cfg["tau"].get("serial", False)),
             "measurement_file": cfg["measurement"]["file"],
         },
+        "assumed_measurement_stats": bool(measurement_R(cfg)[1]),
         "cep_m": cep(xy),
         "cep_ci95_m": [lo, hi],
         "ellipse95": error_ellipse_95(xy),

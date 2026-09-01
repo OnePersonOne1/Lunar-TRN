@@ -77,14 +77,16 @@ def main() -> None:
             "cep_m": d["cep_m"],
             "cep_ci95_m": d["cep_ci95_m"],
             "ellipse95": d["ellipse95"],
-            "assumed_measurement_stats": not Path(cfg["measurement"]["file"]).exists(),
+            # 개별 파일의 기록 우선. 없으면(구 파일) None — 파일 존재로 추정하지 않는다
+            # (실행 시점 mode를 모르므로: 2026-09-01 구 p7_mc 오라벨 사후 분석 참조).
+            "assumed_measurement_stats": d.get("assumed_measurement_stats"),
             "landing_xy_m": d["landing_xy_m"],
         })
     n_runs = conds[0]["n_runs"]
     subtitle = f"preliminary, n={n_runs}; full MC scheduled Oct"
-    assumed = any(c["assumed_measurement_stats"] for c in conds)
-    if assumed:
-        subtitle += " (assumed measurement stats)"
+    # False가 확인된 경우에만 calibrated로 취급 — None(기록 없음)은 보수적으로 경고
+    if any(c["assumed_measurement_stats"] is not False for c in conds):
+        subtitle += " (assumed/unknown measurement stats)"
 
     out = {"meta": result_meta(args.config), "subtitle": subtitle,
            "conditions": [{k: v for k, v in c.items() if k != "landing_xy_m"} for c in conds]}

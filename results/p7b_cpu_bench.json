@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "git_hash": "74c81b9ffdb2b9ce3ca8ce5c8fe350a4937c0ecf",
+    "config_hash": "b34e727f8169c9f9423e3e59a5d1f50d419a7aa28a11073b8969aae5bd4e1775",
+    "timestamp": "2026-09-01T05:30:32.668427+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "cpu": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+  "conditions": "1 thread (affinity 1 core), zig cc(clang) -O2, repeats=3 중 최고",
+  "coremark": {
+    "iterations_per_sec": 34875.610323,
+    "runs": [
+      {
+        "iterations_per_sec": 34859.400418,
+        "iterations": 600000,
+        "total_time_s": 17.212,
+        "validated": true
+      },
+      {
+        "iterations_per_sec": 34875.610323,
+        "iterations": 600000,
+        "total_time_s": 17.204,
+        "validated": true
+      },
+      {
+        "iterations_per_sec": 34851.301115,
+        "iterations": 600000,
+        "total_time_s": 17.216,
+        "validated": true
+      }
+    ],
+    "source_repo": "github.com/eembc/coremark"
+  },
+  "dhrystone": {
+    "dhrystones_per_sec": 71428568.0,
+    "dmips": 40653.70973249858,
+    "source_repo": "github.com/sifive/benchmark-dhrystone"
+  },
+  "references": [
+    {
+      "name": "BAE RAD750 (200 MHz)",
+      "role": "레거시 rad-hard CPU (Curiosity, Perseverance, JWST)",
+      "dmips": 400.0,
+      "coremark": null,
+      "note": "~266 MIPS @110-200 MHz, Dhrystone 2.1 ~400 DMIPS @200 MHz",
+      "source": "BAE Systems / Wikipedia RAD750; militaryaerospace.com 16723785"
+    },
+    {
+      "name": "Gaisler GR740 (quad LEON4FT, 250 MHz)",
+      "role": "ESA 차세대 rad-hard SoC (NGMP)",
+      "dmips": 425.0,
+      "coremark": 511.69,
+      "note": "칩 전체 1800 DMIPS(쿼드). 여기 값은 코어당(1스레드 비교용)",
+      "source": "Gaisler GR740 Product Brief 2024-12 / GR740-VALT-0010 benchmarking note"
+    },
+    {
+      "name": "JAXA HR5000 계열 (MIPS64 5Kf, 200 MHz)",
+      "role": "JAXA 표준 64-bit rad-hard MPU (H-IIA/B GCC 등). SLIM SMU의 CPU 기종을 공개 명시한 문서는 미확인 — JAXA 세대 대표값으로만 사용",
+      "dmips": 320.0,
+      "coremark": null,
+      "note": "320 DMIPS @200 MHz, ~4 W. HR5000S는 FD-SOI 공정 파생(상세 미공개). SLIM의 영상처리는 CPU가 아닌 RTG4 FPGA 담당(별도 행 참조)",
+      "source": "wdic.org/w/SCI/HR5000; NEC SpaceWire WG 2008 ASIC dev; JAXA H-IIB overview"
+    },
+    {
+      "name": "NASA/Microchip HPSC (PIC64, RISC-V 8코어)",
+      "role": "차세대 우주 컴퓨터 (EM칩 2025 Q3)",
+      "dmips": null,
+      "coremark": null,
+      "note": "RAD750 대비 ~100배(NASA 목표), JPL 초기 시험 ~500배 보도 — 공식 단일지표 미공표",
+      "source": "Microchip 'Dawn of the HPSC Era' white paper 2024; hothardware.com NASA RISC-V"
+    },
+    {
+      "name": "JAXA SLIM 영상처리 (Microsemi RTG4 FPGA)",
+      "role": "실제 달 착륙 TRN의 크레이터 탐지·매칭 하드웨어",
+      "dmips": null,
+      "coremark": null,
+      "note": "CPU가 아닌 방사선 내성 FPGA 전용 로직 — 촬영→결과 5초 이내",
+      "source": "Acta Astronautica Vol.226 (2025) SLIM VBN flight results; JAXA cosmos 해설"
+    }
+  ],
+  "speedup_vs_reference": {
+    "BAE RAD750 (200 MHz)": {
+      "dmips_x": 101.63427433124644
+    },
+    "Gaisler GR740 (quad LEON4FT, 250 MHz)": {
+      "coremark_x": 68.15769376575662,
+      "dmips_x": 95.65578760587901
+    },
+    "JAXA HR5000 계열 (MIPS64 5Kf, 200 MHz)": {
+      "dmips_x": 127.04284291405807
+    }
+  },
+  "claim_note": "τ 벤치(1스레드 ORT CPU)를 돌린 CPU의 연산 수준 근거. 레거시 rad-hard 대비 수백 배 빠르므로 τ 실측치는 낙관적 하한 — 차세대(HPSC급) 온보드의 프록시로 해석한다."
+}

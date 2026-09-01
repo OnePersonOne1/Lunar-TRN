@@ -1,5 +1,36 @@
 # STATUS
 
+## P7b 실행 · calibrated 첫 수치·구 P7 오라벨 정정·CPU 벤치 (2026-09-01 오후)
+
+- **[정정] 구 P7 "calibrated 81.4 m"는 assumed였다**: aggregate_mc.py가 mode가 아니라
+  보정 파일 존재로 라벨을 달아(구 라인 80) 잘못 표기. 현재 코드로 assumed 조건 재현 시
+  81.44394950773159 **비트 일치**로 확증. → aggregate는 개별 파일 기록 우선(없으면
+  None=경고), run_mc가 assumed_measurement_stats를 직접 기록하도록 수정.
+  **구 p7_mc.json 수치는 슬라이드 사용 금지**, 아래 p7b_*가 calibrated 공식 수치.
+- **τ 직렬 스윕 (calibrated, n=200/조건, 격자4+실측5)** — results/p7b_tau_serial{,_compoff}.json:
+  | τ | 보상 CEP | 미보상 CEP |
+  |---|---|---|
+  | 50 ms~1 s (실측 4점 포함) | **110.8 m 평탄** | 114→160(n INT8)→165(n FP32)→242(s INT8)→323(s FP32)→556(1 s) |
+  | 2 s (드롭 50%) | 177.8 | 1044.9 |
+  | 5 s (드롭 80%) | 250.4 | 2160.5 |
+  → **임계·마진 구조**: 보상 시 τ<프레임 주기(1 s)는 전부 흡수, 넘으면 드롭으로 악화.
+  미보상 시 양자화 효과는 s에서 유의(323→242, CI 분리), n에서 비유의(165→160, τ 이득
+  23 ms뿐). 경량화(s→n INT8) 유의(242→160).
+- **fp 스윕 (산출물 ④)** — p7b_fp_sweep.json: fp 0→0.3에서 CEP 112.7→150.8, 기각률
+  0.009→0.319. 보정 fp(0.101) 근방 126.6 m. baseline(fp 0.05) 110.8 = 스윕 0.05점과 일치.
+- **오프셋**: baseline(381.4 m) 110.8 vs fp2000 118.9 — CI 겹침. s 통계 MC(p7b_mc_s,
+  s INT8 τ) 111.3 = n과 동급 (측정 품질 통제 확인).
+- **CPU 1스레드 벤치** — p7b_cpu_bench.json: CoreMark 34,876 / 40,654 DMIPS =
+  **RAD750 102배, JAXA HR5000(320 DMIPS, MIPS64 200 MHz) 127배, GR740 코어당 68~96배,
+  HPSC 칩 목표(~100×RAD750)와 같은 자릿수** → 현재 τ 실측 = 차세대(HPSC급) 프록시.
+  SLIM SMU의 CPU 기종 공개 문서는 미확인(HR5000은 JAXA 세대 대표값), SLIM 영상처리는
+  RTG4 FPGA(≤5 s). 도구: zig cc(venv ziglang) -O2, CoreMark/Dhrystone(스크래치패드 클론).
+- **온보드 재현 방안 검토** — docs/onboard_cpu_emulation.md: τ 스케일링 채택(HR5000급
+  τ≈20~25 s → TRN 불가 = SLIM이 FPGA 쓴 이유와 정합; HPSC급 ≈ 실측 그대로).
+  Job Object 사용률 제한은 10월 스팟체크 후보, QEMU·클럭 제한 기각.
+- 다음: P7c(조건부) 또는 문서 갱신 — 슬라이드 수치를 p7b_*로 교체 필수. (선택) 카메라
+  레이트 축 스윕(주기 0.5/0.2 s면 s가 드롭 영역 진입 — 보상 하 양자화 인과 직접 증명).
+
 ## P7b 코드 세션 · 직렬 처리 모델·fp 스윕·s 보정·SLIM 표 (2026-09-01)
 
 - **measurement.mode → calibrated 전환**(config 기준값). 기존 테스트는 assumed 고정

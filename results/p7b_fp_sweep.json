@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "git_hash": "74c81b9ffdb2b9ce3ca8ce5c8fe350a4937c0ecf",
+    "config_hash": "b34e727f8169c9f9423e3e59a5d1f50d419a7aa28a11073b8969aae5bd4e1775",
+    "timestamp": "2026-09-01T05:08:30.536774+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "assumed_measurement_stats": false,
+  "serial": true,
+  "delay_comp": true,
+  "tau_s": 0.19569865002995357,
+  "tau_file": "results/tau_ort_cpu_int8.json",
+  "fp_offset_used_m": 381.4313687721417,
+  "fp_rate_calibrated": 0.10101010101010101,
+  "n_runs_per_point": 200,
+  "conditions": [
+    {
+      "fp_rate": 0.0,
+      "cep_m": 112.73517900180383,
+      "cep_ci95_m": [
+        96.5955744954198,
+        128.80571130114532
+      ],
+      "ellipse95": {
+        "center": [
+          -28.395929808176767,
+          -0.4784477804207541
+        ],
+        "semi_axes_m": [
+          260.38551115389095,
+          206.094208331953
+        ],
+        "angle_rad": 3.0414849681636253
+      },
+      "n_runs": 200,
+      "gate_reject_ratio": 0.00873181818181823,
+      "mean_n_accept": 98.77,
+      "mean_n_meas": 99.64,
+      "mean_n_dropped": 0.0
+    },
+    {
+      "fp_rate": 0.05,
+      "cep_m": 110.80243848677398,
+      "cep_ci95_m": [
+        97.95141140116758,
+        133.27850891567957
+      ],
+      "ellipse95": {
+        "center": [
+          -32.96217587079615,
+          0.775590932536594
+        ],
+        "semi_axes_m": [
+          275.8306318431337,
+          215.7710306387511
+        ],
+        "angle_rad": 3.065079707992266
+      },
+      "n_runs": 200,
+      "gate_reject_ratio": 0.062413467955439006,
+      "mean_n_accept": 93.43,
+      "mean_n_meas": 99.65,
+      "mean_n_dropped": 0.0
+    },
+    {
+      "fp_rate": 0.1,
+      "cep_m": 126.61979817240703,
+      "cep_ci95_m": [
+        105.04960253252955,
+        140.75889354863313
+      ],
+      "ellipse95": {
+        "center": [
+          -35.46688539226854,
+          -0.8483679223821562
+        ],
+        "semi_axes_m": [
+          294.14775171235163,
+          231.67146729102535
+        ],
+        "angle_rad": -3.0733632672803037
+      },
+      "n_runs": 200,
+      "gate_reject_ratio": 0.11563174262204123,
+      "mean_n_accept": 88.1,
+      "mean_n_meas": 99.62,
+      "mean_n_dropped": 0.0
+    },
+    {
+      "fp_rate": 0.2,
+      "cep_m": 139.76462894941722,
+      "cep_ci95_m": [
+        122.50879803355843,
+        148.09454749052514
+      ],
+      "ellipse95": {
+        "center": [
+          -38.01218111729117,
+          -3.6511996570803715
+        ],
+        "semi_axes_m": [
+          338.9128433993395,
+          254.57283487258488
+        ],
+        "angle_rad": -3.1001249790428806
+      },
+      "n_runs": 200,
+      "gate_reject_ratio": 0.21766176030679996,
+      "mean_n_accept": 77.985,
+      "mean_n_meas": 99.69,
+      "mean_n_dropped": 0.0
+    },
+    {
+      "fp_rate": 0.3,
+      "cep_m": 150.77357949302342,
+      "cep_ci95_m": [
+        131.66487025713496,
+        168.57976459958078
+      ],
+      "ellipse95": {
+        "center": [
+          -23.28671411122864,
+          13.480707661679244
+        ],
+        "semi_axes_m": [
+          612.6489565439548,
+          510.2247520207572
+        ],
+        "angle_rad": -2.7351213147867233
+      },
+      "n_runs": 200,
+      "gate_reject_ratio": 0.31903417472221407,
+      "mean_n_accept": 67.885,
+      "mean_n_meas": 99.7,
+      "mean_n_dropped": 0.0
+    }
+  ]
+}

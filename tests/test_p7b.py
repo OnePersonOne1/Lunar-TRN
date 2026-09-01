@@ -104,3 +104,32 @@ def test_fp_offset_calibrated(cfg: dict, tmp_path) -> None:
     cfg_no["measurement"]["file"] = str(path_no)
     m3 = StatMeasurementModel(cfg_no, np.random.default_rng(0))
     assert m3.fp_offset == float(cfg["measurement"]["fp_offset_m"])
+
+
+def test_bench_cpu_parsers() -> None:
+    """bench_cpu의 CoreMark/Dhrystone 출력 파서."""
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location(
+        "bench_cpu", Path("scripts/bench_cpu.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    cm = mod.parse_coremark(
+        "2K performance run parameters for coremark.\n"
+        "CoreMark Size    : 666\n"
+        "Total ticks      : 12000\n"
+        "Total time (secs): 12.000000\n"
+        "Iterations/Sec   : 33221.591000\n"
+        "Iterations       : 400000\n"
+        "Correct operation validated. See README.md for run and reporting rules.\n"
+    )
+    assert cm["iterations_per_sec"] == pytest.approx(33221.591)
+    assert cm["iterations"] == 400000
+    assert cm["validated"] is True
+    assert mod.parse_coremark("garbage")["validated"] is False
+
+    dh = mod.parse_dhrystone("Dhrystones per Second:      17570000.0\n")
+    assert dh["dmips"] == pytest.approx(10000.0)
+    assert mod.parse_dhrystone("nothing here") == {}
