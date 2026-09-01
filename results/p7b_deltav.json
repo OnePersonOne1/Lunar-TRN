@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "git_hash": "5a3f9c01a1c41dcac437dd60f6831fbb03d60551",
+    "config_hash": "b34e727f8169c9f9423e3e59a5d1f50d419a7aa28a11073b8969aae5bd4e1775",
+    "timestamp": "2026-09-01T03:03:48.218528+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "params": {
+    "seed": 0,
+    "tau": null,
+    "fp_rate": null,
+    "delay_comp": null,
+    "measurement": "truth",
+    "detector": null,
+    "assumed_measurement_stats": true
+  },
+  "meas_log": [],
+  "gate_log": [],
+  "landing_xy_m": [
+    -0.0013017149455415234,
+    0.0
+  ],
+  "landing_error_m": 0.0013017149455415234,
+  "landing_v_mps": 0.07654351061196041,
+  "t_land_s": 349.97,
+  "n_measurements": 0,
+  "n_gate_rejected": 0,
+  "n_meas_generated": 0,
+  "n_dropped": 0,
+  "delta_v_mps": 1109.5386721075283,
+  "fp_offset_used_m": null,
+  "final_est_error_m": null
+}

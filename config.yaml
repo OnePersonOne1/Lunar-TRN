@@ -49,19 +49,28 @@ ekf:
   reject_inflate_max_n: 3      # 비행당 팽창 예산 — 저품질 구간에서 불량 측정 삼킴 방지
 
 measurement:
-  mode: assumed                # assumed | calibrated (calibrated면 아래 file 사용)
+  mode: calibrated             # assumed | calibrated (calibrated면 아래 file 사용). P7b(2026-08-31)부터 calibrated 기준
   file: results/measurement_model.json
   sigma_xyz_m: [50.0, 50.0, 30.0]   # assumed 값. P5 보정 전까지 그림에 "assumed" 표기
   fp_rate: 0.05                     # 오검출(잘못된 연관) 확률
-  fp_offset_m: 2000.0               # 오검출 시 무작위 방향 이상치 크기
+  fp_offset_m: 2000.0               # 오검출 이상치 크기 — calibrated면 파일의 fp_offset_med_m이 우선
+  fp_sweep: [0.0, 0.05, 0.10, 0.20, 0.30]  # 오검출률 스윕 (연구계획서 산출물 ④)
   n_min_inliers: 4
   assoc_gate_px: 50.0               # 데이터 연관 게이트 반경 (예측 투영 vs 탐지 중심)
 
 tau:
   mode: constant               # constant | empirical
   constant_s: 0.5
+  serial: false                # true면 직렬 처리: 직전 프레임 처리(τ) 중에는 촬영 생략(드롭)
   empirical_file: results/tau_ort_cpu_int8.json
   sweep_s: [0.05, 0.2, 0.5, 1.0, 2.0, 5.0]
+  sweep_serial_s: [0.05, 1.0, 2.0, 5.0]   # 직렬 모드 τ 격자 (P7b)
+  measured_points:             # 실측 τ 지점 (파일의 median_s 사용)
+    - {file: results/tau_trt_int8.json, label: "n INT8 GPU"}
+    - {file: results/tau_ort_cpu_int8.json, label: "n INT8 CPU"}
+    - {file: results/tau_ort_cpu_fp32.json, label: "n FP32 CPU"}
+    - {file: results/s/tau_ort_cpu_int8.json, label: "s INT8 CPU"}
+    - {file: results/s/tau_ort_cpu_fp32.json, label: "s FP32 CPU"}
 
 mc:
   n_runs: 200

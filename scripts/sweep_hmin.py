@@ -71,7 +71,7 @@ def main() -> None:
         cfg["trn_band"]["h_min_m"] = float(h_min)
         cfg["measurement"]["file"] = str(meas_file)
         for comp in (True, False):
-            xy, _v = run_mc(cfg, args.n_runs, args.workers, args.seed,
+            xy, _v, _ = run_mc(cfg, args.n_runs, args.workers, args.seed,
                             tau=args.tau, fp_rate=st["fp_rate"], delay_comp=comp)
             xy = np.asarray(xy)
             r50 = cep(xy)

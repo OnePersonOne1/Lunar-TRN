@@ -17,6 +17,7 @@ def run_closed_loop(
     seed: int,
     tau: float | str | None = None,
     fp_rate: float | None = None,
+    fp_offset: float | None = None,
     delay_comp: bool | None = None,
     measurement: str = "stat",
     detector_path: str | None = None,
@@ -48,6 +49,7 @@ def run_closed_loop(
     spf = int(round(cfg["imu"]["rate_hz"] / cfg["camera"]["rate_hz"]))  # 측정 주기(IMU 스텝 수)
     h_min = float(cfg["trn_band"]["h_min_m"])
     h_max = float(cfg["trn_band"]["h_max_m"])
+    serial = bool(cfg["tau"].get("serial", False))  # 직렬 처리: 처리 중(busy)에는 촬영 생략
     if delay_comp is None:
         delay_comp = bool(cfg["ekf"]["delay_compensation"])
 
@@ -65,7 +67,7 @@ def run_closed_loop(
             unity_model = UnityMeasurementModel(cfg, rng, detector_path, frames_dir=frames_dir)
             meas_assumed = False
         else:
-            meas_model = StatMeasurementModel(cfg, rng, fp_rate=fp_rate)
+            meas_model = StatMeasurementModel(cfg, rng, fp_rate=fp_rate, fp_offset=fp_offset)
             meas_assumed = meas_model.assumed
         R_meas, _ = measurement_R(cfg)
         tau_is_number = tau is not None and tau != "wallclock"
@@ -113,6 +115,10 @@ def run_closed_loop(
     a_T = np.zeros(3)
     t_land = T_f
     k_land = n_steps
+    busy_until = -math.inf  # 직전 프레임 처리가 끝나는 시각 (serial 전용)
+    n_meas = 0
+    n_dropped = 0
+    delta_v = 0.0  # Σ|a_T|·dt
 
     for k in range(n_steps):
         t = k * dt
@@ -121,6 +127,7 @@ def run_closed_loop(
             state_g = x if measurement == "truth" else ekf.x_hat
             a_T = zem_zev(state_g[:3], state_g[3:], t_go, cfg)
         a_cmd[k] = a_T  # t_go < t_go_min이면 직전 명령 유지
+        delta_v += float(np.linalg.norm(a_T)) * dt
 
         x = rk4_step(x, a_T, dt, g)
         t_next = (k + 1) * dt
@@ -129,23 +136,28 @@ def run_closed_loop(
             a_imu = a_T + rng.normal(0.0, sigma_a, 3)
             ekf.predict(a_imu, dt)
             if (k + 1) % spf == 0 and h_min <= x[2] <= h_max:  # TRN 고도 구간에서만 촬영
-                if unity_model is not None:
-                    info = unity_model.sample_frame(x[:3], ekf.x_hat[:3], seq, t_next)
-                    info["t_c"] = t_next
-                    meas_log.append(info)
-                    z, valid = info["z"], info["valid"]
-                    if tau == "wallclock":
-                        tau_k = info["tau_wallclock_s"]
-                    elif tau is not None:
-                        tau_k = float(tau)
-                    else:
-                        tau_k = tau_sampler.sample()
+                if serial and t_next < busy_until - 1e-9:
+                    n_dropped += 1  # 직전 프레임 처리 중 — 촬영 생략 (τ·측정 rng 미소비)
                 else:
-                    z, valid = meas_model.sample(x[:3])
-                    tau_k = float(tau) if tau is not None else tau_sampler.sample()
-                if valid:
-                    heapq.heappush(pending, (t_next + tau_k, seq, t_next, z, tau_k))
-                seq += 1
+                    if unity_model is not None:
+                        info = unity_model.sample_frame(x[:3], ekf.x_hat[:3], seq, t_next)
+                        info["t_c"] = t_next
+                        meas_log.append(info)
+                        z, valid = info["z"], info["valid"]
+                        if tau == "wallclock":
+                            tau_k = info["tau_wallclock_s"]
+                        elif tau is not None:
+                            tau_k = float(tau)
+                        else:
+                            tau_k = tau_sampler.sample()
+                    else:
+                        z, valid = meas_model.sample(x[:3])
+                        tau_k = float(tau) if tau is not None else tau_sampler.sample()
+                    busy_until = t_next + tau_k
+                    if valid:
+                        heapq.heappush(pending, (t_next + tau_k, seq, t_next, z, tau_k))
+                        n_meas += 1
+                    seq += 1
             while pending and pending[0][0] <= t_next + 1e-9:
                 t_arr, _, t_c, z, tau_k = heapq.heappop(pending)
                 if delay_comp:
@@ -179,4 +191,10 @@ def run_closed_loop(
         "tau_log": [e["tau"] for e in gate_log],
         "meas_log": meas_log,
         "meas_assumed": meas_assumed,
+        "n_meas": n_meas,
+        "n_dropped": n_dropped,
+        "delta_v_mps": delta_v,
+        "fp_offset_used_m": (
+            meas_model.fp_offset if (use_ekf and measurement == "stat") else None
+        ),
     }

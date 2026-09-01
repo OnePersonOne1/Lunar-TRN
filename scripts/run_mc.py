@@ -11,7 +11,10 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from sim.mc import bootstrap_cep_ci, cep, error_ellipse_95, result_meta, run_mc  # noqa: E402
+from sim.mc import (  # noqa: E402
+    bootstrap_cep_ci, cep, error_ellipse_95, extras_summary, result_meta, run_mc,
+)
+from sim.measurement import measurement_R  # noqa: E402
 
 
 def main() -> None:
@@ -20,8 +23,16 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="results/mc.json")
     ap.add_argument("--tau", type=float, default=None)
+    ap.add_argument("--tau-file", default=None,
+                    help="results/tau_*.json 경로 — median_s를 τ로 사용 (--tau보다 우선)")
     ap.add_argument("--fp-rate", type=float, default=None)
+    ap.add_argument("--fp-offset", type=float, default=None,
+                    help="오검출 오프셋 [m] 강제 (기본: calibrated 파일 > config)")
     ap.add_argument("--delay-comp", choices=["on", "off"], default=None)
+    ap.add_argument("--serial", choices=["on", "off"], default=None,
+                    help="직렬 처리 모델(tau.serial) 강제 (기본 config)")
+    ap.add_argument("--measurement-file", default=None,
+                    help="calibrated 측정 모델 파일 강제 (기본 config measurement.file — s 모델 비교용)")
     ap.add_argument("--n-runs", type=int, default=None)
     ap.add_argument("--workers", type=int, default=None)
     ap.add_argument("--fig", default=None, help="착륙 산포도 png 경로 (옵션)")
@@ -32,23 +43,34 @@ def main() -> None:
     n_runs = args.n_runs if args.n_runs is not None else int(cfg["mc"]["n_runs"])
     workers = args.workers if args.workers is not None else int(cfg["mc"]["workers"])
     delay_comp = None if args.delay_comp is None else args.delay_comp == "on"
+    if args.serial is not None:
+        cfg["tau"]["serial"] = args.serial == "on"
+    if args.measurement_file is not None:
+        cfg["measurement"]["file"] = args.measurement_file
+    tau = args.tau
+    if args.tau_file is not None:
+        tau = float(json.loads(Path(args.tau_file).read_text(encoding="utf-8"))["median_s"])
     rng = np.random.default_rng(args.seed)
 
-    xy, v = run_mc(
+    xy, v, extras = run_mc(
         cfg, n_runs, workers, seed0=args.seed,
-        tau=args.tau, fp_rate=args.fp_rate, delay_comp=delay_comp,
+        tau=tau, fp_rate=args.fp_rate, fp_offset=args.fp_offset, delay_comp=delay_comp,
     )
     lo, hi = bootstrap_cep_ci(xy, int(cfg["mc"]["bootstrap_n"]), rng)
     out = {
         "meta": result_meta(args.config),
         "params": {
-            "seed": args.seed, "tau": args.tau, "fp_rate": args.fp_rate,
+            "seed": args.seed, "tau": tau, "tau_file": args.tau_file,
+            "fp_rate": args.fp_rate, "fp_offset": args.fp_offset,
             "delay_comp": delay_comp, "n_runs": n_runs,
+            "serial": bool(cfg["tau"].get("serial", False)),
+            "measurement_file": cfg["measurement"]["file"],
         },
         "cep_m": cep(xy),
         "cep_ci95_m": [lo, hi],
         "ellipse95": error_ellipse_95(xy),
         "landing_v_mean_mps": float(v.mean()),
+        **extras_summary(extras),
         "landing_xy_m": xy.tolist(),
     }
     out_path = Path(args.out)
@@ -76,7 +98,8 @@ def main() -> None:
         ax.set_aspect("equal")
         ax.grid(True, alpha=0.3)
         ax.legend()
-        ax.set_title(f"Landing dispersion, n={n_runs} (assumed measurement stats)")
+        stats_tag = "assumed" if measurement_R(cfg)[1] else "calibrated"
+        ax.set_title(f"Landing dispersion, n={n_runs} ({stats_tag} measurement stats)")
         fig.tight_layout()
         fig_path = Path(args.fig)
         fig_path.parent.mkdir(parents=True, exist_ok=True)

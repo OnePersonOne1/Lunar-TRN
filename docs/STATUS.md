@@ -1,5 +1,33 @@
 # STATUS
 
+## P7b 코드 세션 · 직렬 처리 모델·fp 스윕·s 보정·SLIM 표 (2026-09-01)
+
+- **measurement.mode → calibrated 전환**(config 기준값). 기존 테스트는 assumed 고정
+  (deepcopy)으로 분리. run_mc 산포도 제목 assumed/calibrated 동적 표기.
+- **직렬 처리량 모델**(tau.serial, P7b 핵심): 직전 프레임 처리(busy_until) 중이면 촬영
+  생략(n_dropped), τ·측정 rng는 실제 촬영 시에만 소비. serial=false 경로는 수정 전
+  커밋의 골든 값과 비트 동일 — tests/test_p7b.py 5개로 고정. 1 Hz·τ=2.5 s급에서
+  드롭 비율 ~1/3 확인. "무한 병렬 촬영" 가정 제거로 '보상 시 CEP 평탄' 주장 방어.
+- **run별 extras**: n_meas/n_dropped/게이트 수락률/ΔV(Σ|a_T|·dt)/fp_offset_used_m —
+  run_mc 3-튜플 반환 + extras_summary(). run_closed_loop.py 출력에도 추가.
+- **fp_offset 우선순위**: CLI --fp-offset > calibrated 파일 fp_offset_med_m(381.4 m) >
+  config 2000 m. baseline vs fp2000 비교 배관 완료.
+- **스크립트**: sweep_tau.py 조건 리스트 모드(직렬 격자 4 + 실측 τ 5, CEP·측정수 이중축),
+  sweep_fp.py 신규(연구계획서 산출물 ④ — fp_sweep 5점, calibrated 0.101 세로선),
+  run_mc.py --tau-file/--serial/--fp-offset/--measurement-file 추가.
+- **SLIM 비교표 생성**: results/p7_slim_comparison.json — 측정 성공률 0.98 vs 14/14,
+  σ수평 ≈85 m(GSD 25~34 m/px → 수 px 수준), CEP 81.4 m vs ~10 m. plausibility 수위 한정,
+  착지 55 m 이탈(추진 고장)은 비교 제외. 출처: Acta Astronautica Vol.226 (2025).
+- **s 보정 완료**: results/measurement_model_s.json — INT8 s σ [82.2, 88.2, 30.8] m,
+  fp_rate 0.082, offset 381.7 m, valid 0.97 — **n([87.9, 81.8, 32.9]·0.101)과 동급**.
+  → n vs s의 CEP 차이는 측정 품질이 아니라 τ가 원인이라는 주장의 직접 근거.
+- **ΔV truth 기준**: 1109.5 m/s(참값 유도, 착륙 0.0013 m) → results/p7b_deltav.json.
+  팀원 로켓 방정식 입력용 — 우리 쪽 해석·주장에는 쓰지 않는다.
+- 테스트: `pytest -q` **53 passed**.
+- **수동 작업 필요(tmux, 사용자)**: ① τ 직렬 스윕 ② baseline ③ baseline fp2000
+  ④ fp 스윕 ⑤ p7b_mc_s — 명령 세트는 세션 로그 참조.
+- 다음: 사용자 MC 완료 후 결과 검토·그림 확인 → P7c(조건부) → 문서 갱신(9/5) → P8.
+
 ## trn_band 확정·P6/P7 최종·일반화 test (2026-08-29 낮)
 
 - **h_min ablation → 22000 m 사용자 확정**: ① σ-고도 분석(944프레임): h≥22 km σ수평

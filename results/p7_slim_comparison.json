@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "git_hash": "5a3f9c01a1c41dcac437dd60f6831fbb03d60551",
+    "config_hash": "b34e727f8169c9f9423e3e59a5d1f50d419a7aa28a11073b8969aae5bd4e1775",
+    "timestamp": "2026-09-01T03:01:27.408347+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "claim_level": "plausibility — 실제 임무 공개 비행 결과와 자리수·경향이 일관함을 확인. validation 아님(센서 구성·자유도·측정 고도 구간이 다름)",
+  "slim_source": "Vision-based navigation and obstacle detection flight results in SLIM lunar landing, Acta Astronautica Vol.226 (2025)",
+  "slim_excluded": "착지점 이탈 ~55 m — 엔진 노즐 탈락(추진 고장) 영향이라 비교 기준 제외",
+  "site": {
+    "lat0_deg": -13.316,
+    "lon0_deg": 25.251,
+    "note": "L 원점 = SLIM 착륙점(LROC 측정 13.3160S, 25.2510E)"
+  },
+  "our_sources": {
+    "measurement": "results/measurement_model.json",
+    "p6": "results/p6_closed_loop.json",
+    "p7": "results/p7_mc.json",
+    "tau": "results/tau_ort_cpu_int8.json",
+    "representative_condition": "results\\p7_mc_tau0.19570_compon.json"
+  },
+  "rows": [
+    {
+      "quantity": "영상 항법 측정 성공률",
+      "slim": "14/14 (CST1/2, VLD1/2 전부 성공)",
+      "ours": "보정 valid 0.98 (99/101), P6 실런 게이트 수락 75/99",
+      "note": "우리는 D≥1 km 카탈로그·자동 연관 기준"
+    },
+    {
+      "quantity": "항법 수평 오차",
+      "slim": "< 1 m (고도 500 m 시점)",
+      "ours": "σ 수평 ≈ 85 m (고도 22–30 km, GSD 25–34 m/px)",
+      "note": "픽셀 정규화 σ ≈ 2.5–3.4 px — 관측 해상도 대비 수 픽셀 수준이라는 점에서 경향 일관 (고도·해상도가 달라 절대값 직접 비교 불가)"
+    },
+    {
+      "quantity": "착륙 정밀도",
+      "slim": "~10 m (고도 50 m 시점 평가, 목표 100 m)",
+      "ours": "CEP 81.4 m (τ=196 ms 보상, n=200, calibrated 통계)",
+      "note": "우리는 h<22 km에서 IMU 단독 전파(측정 없음) — SLIM은 저고도 지형 촬영을 착륙 직전까지 계속하므로 직접 비교가 아니라 자리수 비교"
+    }
+  ]
+}

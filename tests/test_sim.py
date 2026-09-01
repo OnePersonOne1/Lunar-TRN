@@ -200,6 +200,8 @@ def test_gate_reject_streak_recovers(cfg: dict) -> None:
 # ---------------------------------------------------------------- 측정 모델·τ 샘플러
 
 def test_stat_measurement_model(cfg: dict) -> None:
+    cfg = copy.deepcopy(cfg)
+    cfg["measurement"]["mode"] = "assumed"  # config 가정값 경로를 검증 (보정 오프셋은 test_p7b)
     rng = np.random.default_rng(0)
     r = np.array([100.0, -50.0, 20000.0])
     m0 = StatMeasurementModel(cfg, rng, fp_rate=0.0)

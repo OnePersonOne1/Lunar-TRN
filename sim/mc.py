@@ -15,16 +15,30 @@ from scipy import stats
 from sim.loop import run_closed_loop
 
 
-def _one_run(args: tuple) -> tuple[list[float], float]:
+def _one_run(args: tuple) -> tuple[list[float], float, dict]:
     cfg, seed, loop_kwargs = args
     res = run_closed_loop(cfg, seed, **loop_kwargs)
-    return res["landing_xy"].tolist(), res["landing_v"]
+    gl = res["gate_log"]
+    n_accept = sum(e["accepted"] for e in gl)
+    extras = {
+        "n_meas": res["n_meas"],
+        "n_dropped": res["n_dropped"],
+        "n_accept": n_accept,
+        "gate_accept": (n_accept / len(gl)) if gl else float("nan"),
+        "delta_v_mps": res["delta_v_mps"],
+        "fp_offset_used_m": res["fp_offset_used_m"],
+    }
+    return res["landing_xy"].tolist(), res["landing_v"], extras
 
 
 def run_mc(
     cfg: dict, n_runs: int, workers: int, seed0: int = 0, **loop_kwargs
-) -> tuple[np.ndarray, np.ndarray]:
-    """seed = seed0..seed0+n_runs-1 병렬 실행 → (landing_xy (n,2), landing_v (n,))."""
+) -> tuple[np.ndarray, np.ndarray, dict]:
+    """seed = seed0..seed0+n_runs-1 병렬 실행.
+
+    반환: (landing_xy (n,2), landing_v (n,), extras) — extras는 run별 배열
+    {n_meas, n_dropped, gate_accept, delta_v_mps}와 fp_offset_used_m(스칼라).
+    """
     tasks = [(cfg, seed0 + i, loop_kwargs) for i in range(n_runs)]
     if workers <= 1:
         out = [_one_run(t) for t in tasks]
@@ -33,7 +47,29 @@ def run_mc(
             out = pool.map(_one_run, tasks)
     xy = np.asarray([o[0] for o in out], dtype=float)
     v = np.asarray([o[1] for o in out], dtype=float)
-    return xy, v
+    extras = {
+        key: np.asarray([o[2][key] for o in out], dtype=float)
+        for key in ("n_meas", "n_dropped", "n_accept", "gate_accept", "delta_v_mps")
+    }
+    extras["fp_offset_used_m"] = out[0][2]["fp_offset_used_m"] if out else None
+    return xy, v, extras
+
+
+def extras_summary(extras: dict) -> dict:
+    """run_mc extras → 조건별 요약(평균 측정 수·드롭 수·게이트 수락률·ΔV 통계)."""
+    dv = extras["delta_v_mps"]
+    return {
+        "mean_n_meas": float(np.mean(extras["n_meas"])),
+        "mean_n_dropped": float(np.mean(extras["n_dropped"])),
+        "mean_n_accept": float(np.mean(extras["n_accept"])),
+        "mean_gate_accept": float(np.nanmean(extras["gate_accept"])),
+        "delta_v_mps": {
+            "mean": float(np.mean(dv)),
+            "p50": float(np.percentile(dv, 50)),
+            "p95": float(np.percentile(dv, 95)),
+        },
+        "fp_offset_used_m": extras["fp_offset_used_m"],
+    }
 
 
 def cep(landing_xy: np.ndarray) -> float:

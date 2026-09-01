@@ -13,13 +13,20 @@ def measurement_sigma(cfg: dict) -> tuple[np.ndarray, bool]:
     measurement.mode == "calibrated"이고 파일이 있으면 보정 통계를 로드,
     아니면 config 가정값(assumed=True → 그림 제목에 "assumed measurement stats").
     """
+    model = _calibrated_model(cfg)
+    if model is not None:
+        return np.asarray(model["sigma_xyz_m"], dtype=float), False
+    return np.asarray(cfg["measurement"]["sigma_xyz_m"], dtype=float), True
+
+
+def _calibrated_model(cfg: dict) -> dict | None:
+    """measurement.mode == "calibrated"이고 파일이 있으면 보정 모델 dict, 아니면 None."""
     m = cfg["measurement"]
     if m["mode"] == "calibrated":
         path = Path(m["file"])
         if path.exists():
-            model = json.loads(path.read_text(encoding="utf-8"))
-            return np.asarray(model["sigma_xyz_m"], dtype=float), False
-    return np.asarray(m["sigma_xyz_m"], dtype=float), True
+            return json.loads(path.read_text(encoding="utf-8"))
+    return None
 
 
 def measurement_R(cfg: dict) -> tuple[np.ndarray, bool]:
@@ -34,11 +41,24 @@ class StatMeasurementModel:
     z = r + N(0, diag σ²); 확률 fp_rate로 무작위 방향 fp_offset_m 이상치(오검출 모사).
     """
 
-    def __init__(self, cfg: dict, rng: np.random.Generator, fp_rate: float | None = None) -> None:
+    def __init__(
+        self,
+        cfg: dict,
+        rng: np.random.Generator,
+        fp_rate: float | None = None,
+        fp_offset: float | None = None,
+    ) -> None:
         m = cfg["measurement"]
         self.rng = rng
         self.fp_rate = float(m["fp_rate"] if fp_rate is None else fp_rate)
-        self.fp_offset = float(m["fp_offset_m"])
+        # 오프셋 우선순위: 명시 인자 > calibrated 파일(fp_offset_med_m) > config 가정값
+        model = _calibrated_model(cfg)
+        if fp_offset is not None:
+            self.fp_offset = float(fp_offset)
+        elif model is not None and model.get("fp_offset_med_m"):
+            self.fp_offset = float(model["fp_offset_med_m"])
+        else:
+            self.fp_offset = float(m["fp_offset_m"])
         self.sigma, self.assumed = measurement_sigma(cfg)
 
     def sample(self, r_true: np.ndarray) -> tuple[np.ndarray, bool]:

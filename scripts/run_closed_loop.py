@@ -131,6 +131,10 @@ def main() -> None:
         "t_land_s": res["t_land"],
         "n_measurements": n_meas,
         "n_gate_rejected": n_rej,
+        "n_meas_generated": res["n_meas"],
+        "n_dropped": res["n_dropped"],
+        "delta_v_mps": res["delta_v_mps"],
+        "fp_offset_used_m": res["fp_offset_used_m"],
         "final_est_error_m": (
             None if res["est_error"] is None
             else float(np.linalg.norm(res["est_error"][-1, :3]))
