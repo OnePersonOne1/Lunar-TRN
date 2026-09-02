@@ -22,3 +22,4 @@ onnxslim
 openvino
 pytest
 imageio-ffmpeg
+ziglang           # scripts/bench_cpu.py 전용 C 컴파일러(zig cc) — 시뮬 런타임과 무관

@@ -11,8 +11,13 @@
   지시 추가 — 커밋 941aee7.
 - scripts/make_diagrams.py: 슬라이드 5(파이프라인)·6(직렬 모델+지연 보상) 다이어그램
   → figs/slides/slide_05_pipeline.png, slide_06_serial_model.png.
-- 남은 P8: 시연 영상 mp4(Unity 캡처 수동), make_slide_assets(results_summary·그림 복사),
-  qa_facts.md 본문, 슬라이드 본문 제작(9/10 동결).
+- **시연 영상(산출물 ⑤) 1차본**: frames/p6 오버레이 99장 → figs/slides/p6_demo.mp4
+  (H.264 yuv420p, 4 fps, 24.75 s, 4.6 MB, 자막·로고 없음). 인코더는 venv의
+  imageio-ffmpeg 동봉 ffmpeg. 재현: `ffmpeg -framerate 4 -i frames/p6/%05d.png
+  -c:v libx264 -crf 20 -pix_fmt yuv420p -movflags +faststart figs/slides/p6_demo.mp4`.
+  Unity Game 뷰 실캡처(궤적·텔레메트리 뷰) 추가 여부는 사용자 판단 대기.
+- 남은 P8: make_slide_assets(results_summary·그림 복사), qa_facts.md 본문,
+  슬라이드 본문 제작(9/10 동결).
 
 ## P7b+ · 보상 성립 조건 실험 — 타임스탬프 지터·카메라 레이트 (2026-09-01 저녁)
 
