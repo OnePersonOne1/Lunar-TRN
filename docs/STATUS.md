@@ -22,8 +22,12 @@
   display3_detection_synced.mp4(오버레이 동기), display4_telemetry.mp4(그래프),
   display4_telemetry.png(최종 정지 그래프). 추적·텔레메트리 시각 동기 확인(T 237 s ↔
   ALT 6.35 km). 슬라이드 9는 landing+detection 중 택1 또는 병렬 배치.
-- 남은 P8: make_slide_assets의 results_summary.md·그림 복사 기능, qa_facts.md 본문,
-  슬라이드 본문 제작(9/10 동결).
+- **P8 자산 세트 완료(9/2)**: make_slide_assets.py에 results_summary(숫자↔출처↔git 자동
+  추출 21행)·슬라이드 그림 복사 추가 → docs/results_summary.md, figs/slides/slide_*.png.
+  docs/qa_facts.md 작성(계획서 대조: 산출물 ①~⑤ 매핑, 선행연구 표, 신규성 4, 자주 나올
+  질문, 밴드 22 km·MC 500 10월). docs/symbols.md와 함께 Q&A 문서 완비.
+- 남은 것: 슬라이드 본문 제작(팀 작업, 9/10 동결) — 자산·수치·스토리보드·Q&A 전부 준비됨.
+  선택: P7c(카메라 지향, 조건부), 10월 본실험(IMU bias·시간상관·n=500·기하 매칭).
 
 ## P7b+ · 보상 성립 조건 실험 — 타임스탬프 지터·카메라 레이트 (2026-09-01 저녁)
 
