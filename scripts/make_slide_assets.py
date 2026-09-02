@@ -4,7 +4,9 @@
   Unity Display 4(TelemetryView)와 같은 데이터·구성을 발표 품질로 다시 그린다.
 - Display 3 영상: frames/p6/*.png(P6 실런 탐지 오버레이, 1장=1초)를 시연 배속(timescale)에
   맞는 재생 속도로 인코딩.
-- Display 2 영상: frames/demo/demo_*.png(Unity captureFrames 산출)가 있으면 인코딩.
+- Unity 캡처 영상: frames/demo/의 d2_*.jpg(착륙 추적)·d3_*.jpg(오버레이 동기 재생)·
+  d4_*.png(텔레메트리) — TrajectoryPlayback captureFrames가 세 화면을 동시 저장 →
+  display{2,3,4}_*.mp4로 각각 인코딩 (구 demo_*.png 단일 캡처도 하위 호환 지원).
 ffmpeg는 imageio-ffmpeg 내장 바이너리를 쓴다.
 """
 from __future__ import annotations
@@ -125,14 +127,22 @@ def main() -> None:
     else:
         print(f"skip: {args.overlay_dir}에 오버레이 프레임 없음")
 
-    # 3) Display 2: 착륙 추적 캡처 영상 (Unity captureFrames 산출이 있을 때)
-    if list(Path(args.capture_dir).glob("demo_*.png")):
-        encode_video(
-            str(Path(args.capture_dir) / "demo_%05d.png"), float(args.fps), args.fps,
-            out_dir / "display2_landing.mp4",
-        )
-    else:
-        print(f"skip: {args.capture_dir}에 캡처 프레임 없음 (unity/README.md 시연 재생 참고)")
+    # 3) Unity 동시 캡처 영상 (captureFrames 산출이 있을 때): d2/d3/d4 → mp4 3종
+    cap = Path(args.capture_dir)
+    seqs = [
+        ("d2_*.jpg", "d2_%05d.jpg", "display2_landing.mp4"),
+        ("d3_*.jpg", "d3_%05d.jpg", "display3_detection_synced.mp4"),
+        ("d4_*.png", "d4_%05d.png", "display4_telemetry.mp4"),
+        ("demo_*.png", "demo_%05d.png", "display2_landing.mp4"),  # 구 단일 캡처 호환
+    ]
+    done = set()
+    for glob_pat, ff_pat, out_name in seqs:
+        if out_name in done or not list(cap.glob(glob_pat)):
+            continue
+        encode_video(str(cap / ff_pat), float(args.fps), args.fps, out_dir / out_name)
+        done.add(out_name)
+    if not done:
+        print(f"skip: {cap}에 캡처 프레임 없음 (unity/README.md 시연 재생 참고)")
 
 
 if __name__ == "__main__":

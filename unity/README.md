@@ -38,9 +38,10 @@ Unity는 센서 모사 전용이다. 좌표계 매핑(x=East, y=Up, z=North, L �
    - 디스플레이 구성(Game 뷰 탭에서 Display 선택): 1=센서 미리보기, 2=착륙 추적, 3=탐지 오버레이(초록 원=매칭 카탈로그, 보라 원=미탐지, 주황 십자+conf=매칭 탐지, 보라 십자=비매칭 탐지), 4=텔레메트리 그래프
    - Display 3용 프레임: `.venv\Scripts\python scripts\run_closed_loop.py --measurement unity --tau wallclock --seed 0 --frames-dir frames\p6 --out results\tmp_p6_frames.json` (Unity Play 상태에서 실행)
 4. 영상으로 뽑으려면: Hierarchy의 DemoPlayback 선택 → Inspector에서 `captureFrames` 체크 →
-   **Game 뷰 탭의 Display 드롭다운을 Display 1로** (에디터의 ScreenCapture는 Game 뷰에 표시 중인
-   화면을 찍는다 — 다른 Display를 보고 있으면 그 화면이 찍힘) → Play를 처음부터 끝까지(약 44초)
-   → `frames/demo/demo_*.png` 저장 → `python scripts/make_slide_assets.py`로 mp4 인코딩
+   Play를 처음부터 끝까지(약 44초). **Game 뷰가 어떤 Display를 보고 있든 무관** —
+   카메라별 RenderTexture로 세 화면을 동시 저장한다:
+   `frames/demo/d2_*.jpg`(착륙 추적) · `d3_*.jpg`(탐지 오버레이, 재생 동기) · `d4_*.png`(텔레메트리)
+   → `python scripts/make_slide_assets.py`로 display{2,3,4}_*.mp4 인코딩
 5. 렌더 서버(TrnCamera)와 독립이라 시연 재생 중에도 측정 경로는 영향 없음.
 
 ## 흔한 오류

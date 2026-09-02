@@ -33,6 +33,9 @@ public class TrajectoryPlayback : MonoBehaviour
     private Texture2D _overlayTex;
     private Material _overlayMat;
     private int _overlayIdx = -1;
+    private Camera _overlayCam;
+    private RenderTexture _rt2, _rt3, _rt4;   // 캡처용 (Display 2/3/4에 대응)
+    private Texture2D _cap2, _cap3, _cap4;
 
     void Start()
     {
@@ -46,18 +49,18 @@ public class TrajectoryPlayback : MonoBehaviour
         _cam.depth = 10f;                              // Main/기타 카메라보다 위에 표시
         _cam.clearFlags = CameraClearFlags.SolidColor;
         _cam.backgroundColor = Color.black;
-        // 캡처(ScreenCapture)는 Display 1만 찍으므로, 캡처 모드에선 Display 1로 강제하고
-        // 센서 미리보기(OnGUI)를 꺼서 착륙 장면만 영상에 담는다.
+        // 캡처는 카메라별 RenderTexture로 직접 찍는다 — Game 뷰가 어떤 Display를
+        // 보고 있든 무관하고, 세 화면(추적/오버레이/텔레메트리)을 동시에 저장한다.
+        _cam.targetDisplay = targetDisplay;
         if (captureFrames)
         {
-            _cam.targetDisplay = 0;
-            var rs = FindFirstObjectByType<RenderServer>();
-            if (rs != null) rs.previewOnScreen = false;
             Directory.CreateDirectory(captureDir);
-        }
-        else
-        {
-            _cam.targetDisplay = targetDisplay;
+            _rt2 = new RenderTexture(1280, 720, 24);
+            _cap2 = new Texture2D(1280, 720, TextureFormat.RGB24, false);
+            _rt3 = new RenderTexture(1024, 1024, 24);
+            _cap3 = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
+            _rt4 = new RenderTexture(1024, 720, 24);
+            _cap4 = new Texture2D(1024, 720, TextureFormat.RGB24, false);
         }
         SetupOverlayView();
         _telemetry = gameObject.AddComponent<TelemetryView>();
@@ -96,6 +99,22 @@ public class TrajectoryPlayback : MonoBehaviour
         cam.backgroundColor = Color.black;
         cam.targetDisplay = overlayDisplay;
         cam.depth = 11f;
+        _overlayCam = cam;
+    }
+
+    // 카메라 한 대를 RenderTexture로 렌더해 PNG/JPG 바이트로 반환 (표시 상태 불변)
+    static void CaptureCam(Camera cam, RenderTexture rt, Texture2D tex, string path, bool jpg)
+    {
+        if (cam == null) return;
+        var prevTarget = cam.targetTexture;
+        var prevActive = RenderTexture.active;
+        cam.targetTexture = rt;
+        cam.Render();
+        RenderTexture.active = rt;
+        tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+        cam.targetTexture = prevTarget;
+        RenderTexture.active = prevActive;
+        File.WriteAllBytes(path, jpg ? tex.EncodeToJPG(92) : tex.EncodeToPNG());
     }
 
     void UpdateOverlay(float t)
@@ -173,12 +192,17 @@ public class TrajectoryPlayback : MonoBehaviour
         UpdateOverlay(t);
         if (_telemetry != null) _telemetry.SetTime(t);
 
-        if (captureFrames && _clock >= _nextCapture && _clock <= tEnd + 1f)
+        if (captureFrames && _rt2 != null && _clock >= _nextCapture && _clock <= tEnd + 1f)
         {
-            // Play 도중 체크박스를 켠 경우에도 동작하도록 폴더를 여기서 보장.
-            // 단, 카메라 Display 1 전환은 Start에서만 하므로 제대로 찍으려면 Play 재시작 권장.
-            if (!Directory.Exists(captureDir)) Directory.CreateDirectory(captureDir);
-            ScreenCapture.CaptureScreenshot(Path.Combine(captureDir, $"demo_{_capIdx++:00000}.png"));
+            // 세 화면을 RenderTexture로 동시 캡처 — Game 뷰 표시 상태와 무관.
+            // 사진성 화면(추적·오버레이)은 JPG, 평면색 텔레메트리는 PNG.
+            CaptureCam(_cam, _rt2, _cap2,
+                       Path.Combine(captureDir, $"d2_{_capIdx:00000}.jpg"), true);
+            CaptureCam(_overlayCam, _rt3, _cap3,
+                       Path.Combine(captureDir, $"d3_{_capIdx:00000}.jpg"), true);
+            CaptureCam(_telemetry != null ? _telemetry.Cam : null, _rt4, _cap4,
+                       Path.Combine(captureDir, $"d4_{_capIdx:00000}.png"), false);
+            _capIdx++;
             _nextCapture += scale / captureFps;
         }
     }

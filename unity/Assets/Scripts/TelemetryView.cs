@@ -44,6 +44,8 @@ public class TelemetryView : MonoBehaviour
         [' '] = new[] { "00000", "00000", "00000", "00000", "00000", "00000", "00000" },
     };
 
+    public Camera Cam { get; private set; }   // 캡처(RenderTexture)용 외부 참조
+
     private Texture2D _tex;
     private List<float> _t;
     private List<Vector3> _pos;
@@ -122,6 +124,7 @@ public class TelemetryView : MonoBehaviour
         cam.backgroundColor = Bg;
         cam.targetDisplay = targetDisplay;
         cam.depth = 12f;
+        Cam = cam;
     }
 
     string FormatVal(float v, Panel p)
