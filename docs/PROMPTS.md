@@ -169,19 +169,35 @@ Unity 서버가 config unity.port에 떠 있다. scripts/check_projection.py를 
 - scripts/make_slide_assets.py: results/*.json에서 슬라이드에 쓸 숫자를 뽑아 docs/results_summary.md에 "숫자 | 출처 파일 | 생성 시각 | git hash" 표로 정리. 출처 없는 숫자는 넣지 않는다. figs/ 중 슬라이드용 그림을 figs/slides/slide_XX_주장.png로 복사.
 - 시연 영상: frames/p6/(Plan A) 또는 p1·p7 결과 애니메이션(Plan B)을 ffmpeg로 30초 이내 mp4. 자막·로고 없음.
 - docs/symbols.md: CLAUDE.md §2 기호 ↔ 코드 변수 ↔ 구현 파일:줄 대응표.
-- docs/qa_facts.md: 코드·config·results에서 확인 가능한 사실만(카메라 파라미터, 고도 구간과 근거, 데이터셋 크기·분리 방식, 학습 설정, 벤치마크 하드웨어, MC 시행 수·CI). 추정과 해석은 넣지 않는다.
+- docs/qa_facts.md: 코드·config·results에서 확인 가능한 사실만(카메라 파라미터, 고도 구간과 근거, 데이터셋 크기·분리 방식, 학습 설정, 벤치마크 하드웨어, MC 시행 수·CI). 추정과 해석은 넣지 않는다. P7b(·P7c 실행 시) results 파일(p7b_*.json, p7b_cpu_bench.json)을 숫자 출처에 포함한다. 온보드 컴퓨트·SLIM 방식·카메라 레이트/지터 현실값 절은 docs/onboard_cpu_emulation.md와 2026-09-02 세션 조사(출처 링크 포함)에서 옮긴다.
 - docs/qa_facts.md에 "신규성 포지셔닝·선행연구" 절을 반드시 포함 (2026-08-28 결정):
   - 합성 렌더 학습은 신규성으로 주장하지 않는다 — 확립된 방법론을 따랐다고 말한다:
     ESA PANGU(행성 표면 합성 렌더 기반 비전 항법 개발·검증 표준 도구),
     DeepMoon(Silburt et al. 2019, DEM 렌더로 CNN 크레이터 탐지 학습) 및 후속 합성→실사 연구,
     Airbus SurRender. 크레이터 기반 항법 실적: Mars 2020 LVS(지도 상대 항법),
     SLIM 크레이터 매칭(고전 영상처리, 비딥러닝).
-  - 이 연구의 기여로 내세울 것: "탐지기를 mAP가 아니라 착륙 CEP로 평가" —
-    INT8 양자화 탐지기의 τ 실측(하드웨어) → 실측 τ·오검출률을 폐루프 EKF+유도에 주입 →
-    MC로 CEP 정량화. 인식→항법→유도를 관통하는 평가 사슬이 신규성이다.
+  - 이 연구의 기여 4가지 (2026-09-02 확정 — p7b results로 확인된 문장만):
+    ① 공개 폐루프 테스트베드: 실데이터(SLDEM·WAC·Robbins)+Unity 렌더+실측 τ를
+      인식→항법→유도로 관통, 모든 수치가 results/*.json에서 결정론 재현.
+    ② INT8 양자화는 mAP 소폭 손실에도 측정 σ·오검출률·CEP를 바꾸지 않는다
+      (measurement_model{,_s}.json by_precision; p7b_tau_serial.json 보상 조건).
+    ③ 촬영 시각 보상 필터에서 지연 자체는 CEP를 바꾸지 않았고(τ≤프레임 주기에서
+      110.8 m 평탄 — p7b_tau_serial.json으로 확인 완료), 지연이 성능에 들어오는
+      경로는 측정률(τ>주기 드롭: 2 s 177.8 / 5 s 250.4 m)·촬영 시각 태깅 오차
+      (1σ 200 ms면 미보상보다 악화 — p7b_jitter_sweep.json)·오검출률
+      (p7b_fp_sweep.json)이다. 카메라 레이트를 올리면 이 경로가 지배해 5 Hz에서
+      양자화 단독이 CEP를 유의하게 가른다(48.7 vs 65.7 m — p7b_rate_sweep.json).
+    ④ 폐루프 평가가 설계값을 바꾼 사례: h_min 17 km(iid 통계 최적) vs 22 km
+      (실런 검증 확정), 게이트 연쇄 기각 발견→공분산 팽창 도입.
+    발표용 축약 3개는 docs/storyline.md의 기여 문구를 그대로 쓴다.
+    "실측 τ 주입" 자체와 미보상 곡선의 n 대 s 배율은 차별점으로 쓰지 않는다.
+  - 선행연구 표(qa_facts.md에 포함): 행 = streaming perception(2020),
+    planner-centric metrics(2020), LunaNet(2020), AST(2022), Aerospace(2025),
+    ION NAVIGATION(2024), arXiv 2606.14776(Candan & Servadio — DL 크레이터 TRN,
+    궤도 영상·개루프) / 열 = τ 취급 | 종단점(평가 지표) | 폐루프 여부 | 공개 여부.
   - Q&A 대비: 합성-실사 도메인 갭 질문에는 숫자로 답한다(텍스처 100 m/px vs
     카메라 GSD 19~34 m/px, 3~5배 업샘플; 태양각 randomization; 한계는 10월 NAC 패치·
-    광학계 모델로 보완 계획). 데이터셋 커버리지 질문에는: 밴드 16.5~30 km를 1 Hz
+    광학계 모델로 보완 계획). 데이터셋 커버리지 질문에는: 밴드 22~30 km를 1 Hz
     148프레임(고도 간격 40~90 m)으로 연속 커버, 궤적 반복 7회는 태양각만 변경,
     접근 회랑(y=0) 한정임을 선제 명시. 과적합 질문에는: train/val=SLIM(배포 도메인) 유지
     근거 + 남부 고지대 held-out 일반화 test(STATUS 2026-08-28 항목) 결과 인용.
