@@ -1,5 +1,19 @@
 # STATUS
 
+## 문서 갱신(9/5분 앞당김) + P8 다이어그램 (2026-09-02)
+
+- 발표 스토리보드 docs/storyline.md (15장 흐름·자산 매핑·금지 수치 목록) — 커밋 45eff17.
+- SLIM 비교표를 p7b_baseline(calibrated 110.8 m) 기준으로 재생성 + assumed 가드.
+  team_status.md 전면 갱신(구 수치 정정 공지 포함).
+- PROMPTS 문서갱신 세션 4항목 실행: limitations §3 확장(지터 모델 범위·직렬/병렬·밴드
+  하한·지향 미정량·구동기 이상화), P8 신규성 절 교체(기여 4 — 기여③은
+  p7b_tau_serial로 확인 후 결과 문장으로 확장), docs/symbols.md 생성, qa_facts 출처
+  지시 추가 — 커밋 941aee7.
+- scripts/make_diagrams.py: 슬라이드 5(파이프라인)·6(직렬 모델+지연 보상) 다이어그램
+  → figs/slides/slide_05_pipeline.png, slide_06_serial_model.png.
+- 남은 P8: 시연 영상 mp4(Unity 캡처 수동), make_slide_assets(results_summary·그림 복사),
+  qa_facts.md 본문, 슬라이드 본문 제작(9/10 동결).
+
 ## P7b+ · 보상 성립 조건 실험 — 타임스탬프 지터·카메라 레이트 (2026-09-01 저녁)
 
 - 동기: 사용자 지적 "결국 다 보상하면 그만" → 보상 만능은 이상화(정확한 t_c·바이어스
