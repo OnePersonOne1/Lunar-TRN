@@ -55,6 +55,10 @@ public class TrajectoryPlayback : MonoBehaviour
         if (captureFrames)
         {
             Directory.CreateDirectory(captureDir);
+            // 이전 녹화 잔여 프레임 제거 — 남으면 번호가 이어져 ffmpeg 인코딩 시 구 녹화와 섞인다
+            foreach (string pat in new[] { "d2_*.jpg", "d3_*.jpg", "d4_*.png", "demo_*.png" })
+                foreach (string f in Directory.GetFiles(captureDir, pat))
+                    File.Delete(f);
             _rt2 = new RenderTexture(1280, 720, 24);
             _cap2 = new Texture2D(1280, 720, TextureFormat.RGB24, false);
             _rt3 = new RenderTexture(1024, 1024, 24);

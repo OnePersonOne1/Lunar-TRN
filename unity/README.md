@@ -41,7 +41,9 @@ Unity는 센서 모사 전용이다. 좌표계 매핑(x=East, y=Up, z=North, L �
    Play를 처음부터 끝까지(약 44초). **Game 뷰가 어떤 Display를 보고 있든 무관** —
    카메라별 RenderTexture로 세 화면을 동시 저장한다:
    `frames/demo/d2_*.jpg`(착륙 추적) · `d3_*.jpg`(탐지 오버레이, 재생 동기) · `d4_*.png`(텔레메트리)
-   → `python scripts/make_slide_assets.py`로 display{2,3,4}_*.mp4 인코딩
+   → `python scripts/make_slide_assets.py`로 display{2,3,4}_*.mp4 인코딩.
+   **Play 시작 시 frames/demo/의 이전 캡처 프레임은 자동 삭제**된다(구 녹화와 섞임 방지) —
+   보관하려면 Play 전에 폴더를 다른 이름으로 옮겨라. 인코딩된 mp4는 figs/slides/에 남는다.
 5. 렌더 서버(TrnCamera)와 독립이라 시연 재생 중에도 측정 경로는 영향 없음.
 
 ## 흔한 오류
