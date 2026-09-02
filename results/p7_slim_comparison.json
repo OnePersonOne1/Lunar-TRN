@@ -1,8 +1,8 @@
 {
   "meta": {
-    "git_hash": "5a3f9c01a1c41dcac437dd60f6831fbb03d60551",
-    "config_hash": "b34e727f8169c9f9423e3e59a5d1f50d419a7aa28a11073b8969aae5bd4e1775",
-    "timestamp": "2026-09-01T03:01:27.408347+00:00",
+    "git_hash": "29a6de881131f68f30ebff31126b4d2a25f5479c",
+    "config_hash": "15fc5a1f91c0a62dd562a8dde2cbc158b3fcee17a164cffd2be3f8714e0fcc0a",
+    "timestamp": "2026-09-02T01:35:07.741445+00:00",
     "hardware": {
       "platform": "Windows-11-10.0.26200-SP0",
       "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
@@ -20,9 +20,9 @@
   "our_sources": {
     "measurement": "results/measurement_model.json",
     "p6": "results/p6_closed_loop.json",
-    "p7": "results/p7_mc.json",
+    "baseline": "results/p7b_baseline.json",
     "tau": "results/tau_ort_cpu_int8.json",
-    "representative_condition": "results\\p7_mc_tau0.19570_compon.json"
+    "representative_condition": "results/p7b_baseline.json"
   },
   "rows": [
     {
@@ -40,7 +40,7 @@
     {
       "quantity": "착륙 정밀도",
       "slim": "~10 m (고도 50 m 시점 평가, 목표 100 m)",
-      "ours": "CEP 81.4 m (τ=196 ms 보상, n=200, calibrated 통계)",
+      "ours": "CEP 110.8 m (τ=196 ms 보상, n=200, calibrated 통계)",
       "note": "우리는 h<22 km에서 IMU 단독 전파(측정 없음) — SLIM은 저고도 지형 촬영을 착륙 직전까지 계속하므로 직접 비교가 아니라 자리수 비교"
     }
   ]

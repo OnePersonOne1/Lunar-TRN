@@ -42,7 +42,8 @@ def main() -> None:
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--seed", type=int, default=0)  # CLI 규약 통일용
     ap.add_argument("--out", default="results/p7_slim_comparison.json")
-    ap.add_argument("--p7", default="results/p7_mc.json")
+    ap.add_argument("--baseline", default="results/p7b_baseline.json",
+                    help="대표 조건 MC (calibrated, τ=n INT8 CPU, comp on, serial)")
     ap.add_argument("--p6", default="results/p6_closed_loop.json")
     ap.add_argument("--measurement", default="results/measurement_model.json")
     ap.add_argument("--tau-file", default="results/tau_ort_cpu_int8.json",
@@ -60,10 +61,14 @@ def main() -> None:
     p6 = _load(args.p6)
     tau_med = float(_load(args.tau_file)["median_s"])
 
-    # p7_mc.json에서 대표 조건(보상 on, τ = n INT8 CPU median에 가장 가까운 점)
-    p7 = _load(args.p7)
-    comp_on = [c for c in p7["conditions"] if c["delay_comp"]]
-    rep = min(comp_on, key=lambda c: abs(c["tau_s"] - tau_med))
+    # 대표 조건: p7b_baseline (calibrated 확정 수치 — 구 p7_mc는 assumed 오라벨로 사용 금지)
+    base = _load(args.baseline)
+    if base.get("assumed_measurement_stats"):
+        raise SystemExit(f"{args.baseline}이 assumed 통계다 — SLIM 표에 쓸 수 없다.")
+    rep = {"cep_m": base["cep_m"], "tau_s": float(base["params"]["tau"]),
+           "n_runs": int(base["params"]["n_runs"]), "file": args.baseline}
+    if abs(rep["tau_s"] - tau_med) > 0.01:
+        raise SystemExit(f"baseline τ({rep['tau_s']})가 {args.tau_file} median({tau_med})과 다르다.")
 
     # 카메라 GSD(nadir): f[px] = H/(2·tan(θ_v/2)), GSD(h) = h/f — 픽셀 정규화 비교용
     f_px = float(cfg["camera"]["H"]) / (2.0 * math.tan(math.radians(float(cfg["camera"]["fov_v_deg"])) / 2.0))
@@ -112,7 +117,7 @@ def main() -> None:
         "our_sources": {
             "measurement": args.measurement,
             "p6": args.p6,
-            "p7": args.p7,
+            "baseline": args.baseline,
             "tau": args.tau_file,
             "representative_condition": rep["file"],
         },
