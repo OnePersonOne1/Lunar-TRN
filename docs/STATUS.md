@@ -16,7 +16,13 @@
   imageio-ffmpeg 동봉 ffmpeg. 재현: `ffmpeg -framerate 4 -i frames/p6/%05d.png
   -c:v libx264 -crf 20 -pix_fmt yuv420p -movflags +faststart figs/slides/p6_demo.mp4`.
   Unity Game 뷰 실캡처(궤적·텔레메트리 뷰) 추가 여부는 사용자 판단 대기.
-- 남은 P8: make_slide_assets(results_summary·그림 복사), qa_facts.md 본문,
+- **시연 영상 세트 완성(9/2 저녁)**: Unity 캡처를 카메라별 RenderTexture 3화면 동시
+  저장으로 개선(Game 뷰 무관, 재녹화 시 이전 프레임 자동 삭제) → 사용자 Play 1회
+  (475프레임×3) → 16 fps 인코딩 **29.69 s** (30 s 규격 내): display2_landing.mp4(추적),
+  display3_detection_synced.mp4(오버레이 동기), display4_telemetry.mp4(그래프),
+  display4_telemetry.png(최종 정지 그래프). 추적·텔레메트리 시각 동기 확인(T 237 s ↔
+  ALT 6.35 km). 슬라이드 9는 landing+detection 중 택1 또는 병렬 배치.
+- 남은 P8: make_slide_assets의 results_summary.md·그림 복사 기능, qa_facts.md 본문,
   슬라이드 본문 제작(9/10 동결).
 
 ## P7b+ · 보상 성립 조건 실험 — 타임스탬프 지터·카메라 레이트 (2026-09-01 저녁)
