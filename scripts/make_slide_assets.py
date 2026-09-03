@@ -60,6 +60,15 @@ SUMMARY = [
     ("지터 200ms 시 CEP [m]", "p7b_jitter_sweep.json",
      "conditions[jit=0.2].cep_m", "{:.1f}"),
     ("ΔV truth [m/s]", "p7b_deltav.json", "delta_v_mps", "{:.1f}"),
+    ("고전 PCA mAP50-95", "p7c_det_compare.json", "entries.classic_pca_prior.mAP50_95", "{:.3f}"),
+    ("고전 PCA recall", "p7c_det_compare.json", "entries.classic_pca_prior.recall", "{:.3f}"),
+    ("τ 고전 PCA [ms]", "p7c_det_compare.json",
+     "entries.classic_pca_prior.tau.median_s", "{:.1f}", 1e3),
+    ("측정 σ 수평 [m] (고전)", "measurement_model_classic.json", "sigma_xyz_m[0]", "{:.1f}"),
+    ("보정 오검출률 (고전)", "measurement_model_classic.json", "fp_rate_est", "{:.3f}"),
+    ("CEP 고전 PCA [m]", "p7c_cep_compare.json", "conditions[label=classic_pca].cep_m", "{:.1f}"),
+    ("CEP YOLO INT8 (동일 조건) [m]", "p7c_cep_compare.json",
+     "conditions[label=yolo_int8].cep_m", "{:.1f}"),
 ]
 
 
@@ -145,6 +154,8 @@ SLIDE_FIGS = [
     ("figs/p7b_cep_vs_jitter.png", "slide_12a_jitter.png"),
     ("figs/p7b_cep_vs_rate.png", "slide_12b_rate.png"),
     ("figs/p7b_pnp_error_hist_s.png", "slide_07_pnp_hist_s.png"),
+    ("figs/p7c_det_compare.png", "slide_13a_classic_det.png"),
+    ("figs/p7c_cep_compare.png", "slide_13b_classic_cep.png"),
 ]
 
 

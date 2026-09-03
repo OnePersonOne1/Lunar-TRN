@@ -29,6 +29,7 @@
 | 13 | SLIM 정합성 (plausibility) | 측정 성공률 0.98 vs 14/14, σ수평 ≈85 m=GSD 대비 수 px, CEP 110.8 m vs ~10 m — 자리수·경향 비교(검증 아님, 센서·자유도 다름) | p7_slim_comparison.json |
 | 14 | 한계·10월 계획 | 무제약 ZEM/ZEV, IMU 바이어스 없음(통계 111 vs 실런 198 갭), 시간상관 미모델, n=200(본실험 500), 최근접 연관, FPGA τ 정밀화 | docs/limitations.md |
 | 15 | 결론 | 주장 재진술 + 기여 3 + 재현성(모든 수치 results/*.json, 결정론 시드) | — |
+| 백업 | **고전 vs AI 베이스라인**: 같은 val·같은 지표에서 mAP50-95 0.093 vs 0.983, τ 218.8 vs 151.6 ms, 측정 σ수평 460 vs 88 m → **CEP 664.4 vs 126.6 m(5.2배)**. τ를 서로 바꿔도 CEP 불변(둘 다 주기 1 s 미만) — "mAP 격차가 착륙에서 얼마인지는 폐루프로만 답한다"의 직접 증거. x86 조건부 τ 순위임을 캡션에 명기 | figs/slides/slide_13a_classic_det.png, slide_13b_classic_cep.png, p7c_det_compare.json, p7c_cep_compare.json, docs/classic_baseline.md |
 | 백업 | ΔV 1109.5 m/s(팀원 질량 산정 입력), 일반화 test(고지대 mAP 갭), 게이트 디버그 사슬, CoreMark 34,876/40,654 DMIPS 상세 | p7b_deltav.json, p5_det_highlands.json, p7b_cpu_bench.json |
 
 발표 시간이 짧으면: 7↔8 병합, 13을 백업으로 강등, 4를 3에 흡수.

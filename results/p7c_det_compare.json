@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "git_hash": "42961e04948bdeb5b447d24abe22210e1d0b4940",
+    "config_hash": "9f076c168d1a081f6a3b20ba7c699473f09c359f8bf3d28378beae27832ecf3b",
+    "timestamp": "2026-09-03T05:20:47.133424+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "note": "모든 지표는 perception/metrics.py 단일 구현(VOC2010+ 적분). ultralytics val(101점 보간) 값은 ultralytics_reference에 별도 기재. τ는 1스레드 CPU, warmup 50, n_iter 300.",
+  "n_val_frames": 112,
+  "entries": {
+    "classic_pca": {
+      "model": "runs/classic/pca_crater.npz",
+      "threshold_z": 6.574858665466309,
+      "mAP50": 0.10638419155816226,
+      "mAP50_95": 0.04144882510997932,
+      "tp": 1318,
+      "fp": 7406,
+      "fn": 3884,
+      "precision": 0.151077487391105,
+      "recall": 0.25336409073433297,
+      "fp_per_frame": 66.125,
+      "det_per_frame": 77.89285714285714,
+      "n_gt": 5202,
+      "tau": {
+        "median_s": 0.49835815001279116,
+        "p95_s": 0.5135586051619612,
+        "mean_s": 0.5002199456693294,
+        "std_s": 0.005857283833478779,
+        "n_iter": 300
+      }
+    },
+    "classic_pca_prior": {
+      "model": "runs/classic/pca_crater.npz",
+      "threshold_z": 6.574858665466309,
+      "d_min_px": 29.56033378250884,
+      "note": "altitude/catalog prior on scale search",
+      "mAP50": 0.24242881135170508,
+      "mAP50_95": 0.09346402237104978,
+      "tp": 1332,
+      "fp": 2471,
+      "fn": 3870,
+      "precision": 0.3502498027872732,
+      "recall": 0.2560553633217993,
+      "fp_per_frame": 22.0625,
+      "det_per_frame": 33.955357142857146,
+      "n_gt": 5202,
+      "tau": {
+        "median_s": 0.21882429998368025,
+        "p95_s": 0.2281349748489447,
+        "mean_s": 0.21985266932829595,
+        "std_s": 0.0041188720291694455,
+        "n_iter": 300
+      }
+    },
+    "yolo_fp32": {
+      "model": "runs/detect/runs/train/crater/weights/best.pt",
+      "conf": 0.25,
+      "mAP50": 0.999552465688209,
+      "mAP50_95": 0.9967501106695046,
+      "tp": 5202,
+      "fp": 420,
+      "fn": 0,
+      "precision": 0.9252934898612594,
+      "recall": 1.0,
+      "fp_per_frame": 3.75,
+      "det_per_frame": 50.19642857142857,
+      "n_gt": 5202
+    },
+    "yolo_int8": {
+      "model": "runs/export/crater_int8_ort.onnx",
+      "conf": 0.25,
+      "mAP50": 0.9984797420198214,
+      "mAP50_95": 0.9825862890989885,
+      "tp": 5196,
+      "fp": 376,
+      "fn": 6,
+      "precision": 0.9325197415649676,
+      "recall": 0.9988465974625144,
+      "fp_per_frame": 3.357142857142857,
+      "det_per_frame": 49.75,
+      "n_gt": 5202,
+      "tau": {
+        "median_s": 0.15162560006137937,
+        "p95_s": 0.1545489399577491,
+        "mean_s": 0.15207803833298386,
+        "std_s": 0.0023161779937977095,
+        "n_iter": 300
+      }
+    }
+  },
+  "ultralytics_reference": {
+    "fp32": {
+      "mAP50": 0.995,
+      "mAP50_95": 0.9939236661438111
+    },
+    "int8": {
+      "mAP50": 0.9946201678050793,
+      "mAP50_95": 0.9799607112030158
+    }
+  }
+}

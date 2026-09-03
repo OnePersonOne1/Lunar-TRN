@@ -98,21 +98,28 @@ def main() -> None:
     ap.add_argument("--dataset", default="data/dataset")
     ap.add_argument("--out", default="results/measurement_model.json")
     ap.add_argument("--fig", default="figs/p5_pnp_error_hist.png")
+    ap.add_argument("--model", default=None,
+                    help="단일 모델만 보정 (예: 고전 베이스라인 .npz). 주면 --fp32/--int8 무시")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh)
     dataset = Path(args.dataset)
 
+    models = ((("model", args.model),) if args.model
+              else (("fp32", args.fp32), ("int8", args.int8)))
     results = {}
-    for key, path in (("fp32", args.fp32), ("int8", args.int8)):
+    for key, path in models:
         r = calibrate(path, cfg, dataset, args.seed)
         r["model"] = path
         results[key] = r
         print(f"{key}: {json.dumps({k: v for k, v in r.items() if k != 'errors_xyz_m'}, ensure_ascii=False)}")
 
     # measurement_model.json은 INT8(실제 온보드 조건) 기준. fp32는 비교용으로 같은 파일에 포함.
-    primary = results["int8"] if "sigma_xyz_m" in results["int8"] else results["fp32"]
+    if args.model:
+        primary = results["model"]
+    else:
+        primary = results["int8"] if "sigma_xyz_m" in results["int8"] else results["fp32"]
     out = {"meta": result_meta(args.config), **primary, "by_precision": {
         k: {kk: vv for kk, vv in v.items() if kk != "errors_xyz_m"} for k, v in results.items()
     }}

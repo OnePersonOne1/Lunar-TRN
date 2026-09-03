@@ -1,5 +1,36 @@
 # STATUS
 
+## P7c · 고전(PCA 템플릿) 탐지 베이스라인 비교 — mAP·CEP 양축 (2026-09-03)
+
+- 완료:
+  - `perception/classic.py` — PCA 외형 부분공간 템플릿 + Fisher 판별(SLIM 계열 비DL 근사).
+    학습 스트리밍(메모리 상한)·임계 튜닝은 prefix 누적 F1 최대. `.npz` 28 KB.
+  - `perception/metrics.py` — 계열 무관 단일 지표 구현(AP/mAP50-95/TP·FP·FN).
+    `perception/detect.py`가 `.npz`를 `pca` 백엔드로 디스패치 → 연관·PnP·EKF 경로 그대로 사용.
+  - 스크립트 3종: `scripts/train_classic.py`(학습 + 고도 사전정보 사본 저장),
+    `scripts/eval_classic.py`(같은 val·같은 지표로 mAP·P/R·τ), `scripts/compare_classic_cep.py`
+    (측정통계 × τ 2×2 MC). `calibrate_measurement.py --model` 단일 모델 보정 추가.
+- 테스트 결과: `pytest -q` 65 passed (52.8 s) — tests/test_classic.py 8건 신규
+  (AP 정의, greedy 매칭, 학습 결정론, 저장·복원 동일성, 스케일 제한, 백엔드 디스패치).
+- 생성 파일: results/p7c_classic_train.json, p7c_det_compare.json, p7c_cep_compare.json,
+  measurement_model_classic.json, figs/p7c_det_compare.png, p7c_cep_compare.png,
+  p7c_pnp_error_hist.png, figs/slides/slide_13a·13b, docs/classic_baseline.md,
+  runs/classic/pca_crater{,_prior}.npz(비커밋).
+- 핵심 수치(val 112프레임 / MC n=200·직렬·보상 on):
+  - 탐지: 고전(고도 사전정보) mAP50-95 **0.093**·recall 0.256·τ **218.8 ms**
+    vs YOLO11n INT8 **0.983**·0.999·**151.6 ms**. 사전정보 없는 전수 스케일은
+    mAP50 0.106·τ 498.4 ms — 미세 스케일 탐색이 비용·오검출의 대부분.
+  - 측정: σ수평 460.4 m vs 87.9 m, 오검출률 0.151 vs 0.101, PnP 유효율 0.921 vs 0.980.
+  - **CEP 664.4 m [605, 753] vs 126.6 m [105, 143] — 5.2배.** τ를 서로 바꿔도 CEP 불변
+    (둘 다 프레임 주기 1 s 미만 → 보상이 흡수). 계열 격차는 지연이 아니라 측정 품질로 들어온다.
+  - ultralytics val 교차확인: FP32 mAP50-95 0.994(ultralytics) vs 0.997(본 구현) — 보간 차 수준.
+- 특이사항: ① 학습셋 888장 전체 적재 시 4.3 GB 스와핑 → 프레임 스트리밍 + reservoir로 교체
+  ② 임계 튜닝 격자 탐색이 점수 범위 확대로 폭주 → prefix 누적 방식으로 교체
+  ③ eval의 fp32 기본 경로가 runs/detect/runs/train/... 임(p5_det.json과 동일).
+- 수동 작업 필요: 없음.
+- 다음 단계: 슬라이드 부록에 13a·13b 배치(본편은 3분 제약상 제외 권장), 10월 본실험에서
+  고전 방식도 MC 500회·고정소수점 구현 비용 추정으로 확장.
+
 ## 문서 갱신(9/5분 앞당김) + P8 다이어그램 (2026-09-02)
 
 - 발표 스토리보드 docs/storyline.md (15장 흐름·자산 매핑·금지 수치 목록) — 커밋 45eff17.

@@ -57,7 +57,8 @@
 | 4 | 스토리보드 | `docs/storyline.md` | 본편/부록 흐름·그림 매핑 |
 | 5 | 숫자 요약 | `docs/results_summary.md` | 쓸 수 있는 숫자의 유일 출처 |
 | 6 | Q&A 사실집 | `docs/qa_facts.md` | 부록·선행연구 표·산출물 매핑 |
-| 7 | 그림 자산 | `figs/slides/slide_05_pipeline.png`, `slide_06_serial_model.png`, `slide_07_pnp_hist_s.png`, `slide_10_cep_vs_tau.png`, `slide_11_cep_vs_fp.png`, `slide_12a_jitter.png`, `slide_12b_rate.png` | 슬라이드 삽화 |
+| 6b | 고전 비교 상세 | `docs/classic_baseline.md` | 부록 13a·13b의 방법·한계·반론 대비 |
+| 7 | 그림 자산 | `figs/slides/slide_05_pipeline.png`, `slide_06_serial_model.png`, `slide_07_pnp_hist_s.png`, `slide_10_cep_vs_tau.png`, `slide_11_cep_vs_fp.png`, `slide_12a_jitter.png`, `slide_12b_rate.png`, `slide_13a_classic_det.png`, `slide_13b_classic_cep.png` | 슬라이드 삽화 |
 | 8 | 시연 영상(대표컷 캡처 또는 파일) | `figs/slides/display2_landing.mp4`, `display3_detection_synced.mp4`, `display4_telemetry.png` | 시연 슬라이드 |
 
 메모:

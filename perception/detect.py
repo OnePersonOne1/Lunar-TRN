@@ -16,16 +16,20 @@ from perception.bench_tau import OrtRunner, TrtRunner  # noqa: E402
 
 
 class Detector:
-    """backend: "torch"(.pt) | "ort"(.onnx) | "trt"(.engine)."""
+    """backend: "torch"(.pt) | "ort"(.onnx) | "trt"(.engine) | "pca"(.npz, 고전 베이스라인 P7c)."""
 
     def __init__(self, model_path: str, cfg: dict, backend: str | None = None) -> None:
         suffix = Path(model_path).suffix
         if backend is None:
-            backend = {".pt": "torch", ".onnx": "ort", ".engine": "trt"}.get(suffix, "torch")
+            backend = {".pt": "torch", ".onnx": "ort", ".engine": "trt", ".npz": "pca"}.get(suffix, "torch")
         self.backend = backend
         imgsz = int(cfg["detector"]["imgsz"])
         conf = float(cfg["detector"]["conf"])
-        if backend == "torch":
+        if backend == "pca":
+            from perception.classic import PCADetector
+
+            self._runner = PCADetector.load(model_path)
+        elif backend == "torch":
             from ultralytics import YOLO
 
             self._yolo = YOLO(model_path)
@@ -43,6 +47,8 @@ class Detector:
         if self.backend == "torch":
             res = self._yolo.predict(img_bgr, imgsz=self._imgsz, conf=self._conf, verbose=False)[0]
             return res.boxes.data.cpu().numpy().astype(np.float32)
+        if self.backend == "pca":
+            return self._runner.detect(img_bgr)
         det = self._runner.detect(img_bgr)
         return det.cpu().numpy().astype(np.float32)
 

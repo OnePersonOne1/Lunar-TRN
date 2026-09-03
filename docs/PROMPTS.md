@@ -228,7 +228,7 @@ Unity 서버가 config unity.port에 떠 있다. scripts/check_projection.py를 
 - 부록(무제한): 본편에서 뺀 모든 것 — 전체 파이프라인·좌표계, 측정 보정 방법론,
   τ 벤치 4백엔드+GPU 반례, 온보드 3단 경로(HR5000 127배·RTG4 FPGA), 직렬 모델·지연
   보상 모식도(slide_06), 미보상 τ 스윕 전체, 오검출률 곡선(slide_11), 지터 스윕
-  (slide_12a), SLIM 정합성 표, P6 실런·일반화 test, 한계(limitations.md 전체),
+  (slide_12a), 고전 베이스라인 비교(slide_13a·13b, docs/classic_baseline.md), SLIM 정합성 표, P6 실런·일반화 test, 한계(limitations.md 전체),
   선행연구 표(qa_facts §7), ΔV, 기호표(symbols.md 링크). 부록 각 장도 자산·수치 출처를 단다.
 
 엄수: 숫자는 docs/results_summary.md에 있는 것만. 없으면 그 결과를 먼저 만들거나 "TBD".

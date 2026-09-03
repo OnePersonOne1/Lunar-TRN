@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "git_hash": "42961e04948bdeb5b447d24abe22210e1d0b4940",
+    "config_hash": "9f076c168d1a081f6a3b20ba7c699473f09c359f8bf3d28378beae27832ecf3b",
+    "timestamp": "2026-09-03T05:22:53.334942+00:00",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10"
+    }
+  },
+  "model": "runs\\classic\\pca_crater.npz",
+  "params": {
+    "patch_px": 24,
+    "crop_margin": 1.3,
+    "n_components": 12,
+    "d_min_px": 20,
+    "d_max_px": 640,
+    "scale_step": 1.25,
+    "n_pos_max": 6000,
+    "n_neg_per_frame": 40,
+    "neg_iou_max": 0.1,
+    "lda_ridge": 0.001,
+    "score_floor": 1.0,
+    "nms_iou": 0.4,
+    "max_cand_per_scale": 150,
+    "n_tune_frames": 40,
+    "map_conf": 0.001
+  },
+  "n_frames": 888,
+  "n_pos": 6000,
+  "n_neg": 35520,
+  "explained_variance_ratio": [
+    0.1800179763788669,
+    0.13432894534836032,
+    0.10316914612195541,
+    0.08732605598205694,
+    0.06290719972742309,
+    0.04873421961026397,
+    0.040679573646785636,
+    0.03442421588951839,
+    0.02889384801413767,
+    0.02744146294656672,
+    0.02228701619963987,
+    0.02081405173127177
+  ],
+  "pos_z_mean": 4.648375849619301,
+  "threshold": 6.574858665466309,
+  "tune_f1": 0.18531025749261293,
+  "tune_precision": 0.14034526854219948,
+  "tune_recall": 0.27267080745341615,
+  "n_tune_frames": 40,
+  "train_wall_s": 42.85958659998141,
+  "prior_model": "runs\\classic\\pca_crater_prior.npz",
+  "prior_d_min_px": 29.56033378250884
+}

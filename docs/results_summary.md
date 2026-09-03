@@ -26,3 +26,10 @@ TBD = 해당 결과 파일/필드 부재. 구 assumed 수치는 매니페스트�
 | 5Hz n FP32 CEP [m] | 65.7 | `p7b_rate_sweep.json` | 2026-09-01T06:34:19 | `fed24586` |
 | 지터 200ms 시 CEP [m] | 194.9 | `p7b_jitter_sweep.json` | 2026-09-01T06:16:51 | `fed24586` |
 | ΔV truth [m/s] | 1109.5 | `p7b_deltav.json` | 2026-09-01T03:03:48 | `5a3f9c01` |
+| 고전 PCA mAP50-95 | 0.093 | `p7c_det_compare.json` | 2026-09-03T05:20:47 | `42961e04` |
+| 고전 PCA recall | 0.256 | `p7c_det_compare.json` | 2026-09-03T05:20:47 | `42961e04` |
+| τ 고전 PCA [ms] | 218.8 | `p7c_det_compare.json` | 2026-09-03T05:20:47 | `42961e04` |
+| 측정 σ 수평 [m] (고전) | 460.4 | `measurement_model_classic.json` | 2026-09-03T05:23:28 | `42961e04` |
+| 보정 오검출률 (고전) | 0.151 | `measurement_model_classic.json` | 2026-09-03T05:23:28 | `42961e04` |
+| CEP 고전 PCA [m] | 664.4 | `p7c_cep_compare.json` | 2026-09-03T05:30:23 | `42961e04` |
+| CEP YOLO INT8 (동일 조건) [m] | 126.6 | `p7c_cep_compare.json` | 2026-09-03T05:30:23 | `42961e04` |
