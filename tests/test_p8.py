@@ -11,11 +11,12 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.run_mc_unity import aggregate, dedupe_meas, load_done_seeds  # noqa: E402
+from sim.measurement import load_registration_correction, registration_bias  # noqa: E402
 
 
 @pytest.fixture
 def cfg(tmp_path: Path) -> dict:
-    return {"mc": {"bootstrap_n": 20}, "bench": {"cpu_threads": 1}}
+    return {"mc": {"bootstrap_n": 20, "crash_error_m": 5000.0}, "bench": {"cpu_threads": 1}}
 
 
 def _run_rec(seed: int, x: float, y: float) -> dict:
@@ -50,6 +51,24 @@ def test_dedupe_meas_keeps_last() -> None:
     assert [r["tau_wallclock_s"] for r in out if r["seed"] == 0 and r["t_c"] == 1.0] == [0.3]
 
 
+def test_registration_correction(tmp_path: Path) -> None:
+    corr = {
+        "kind": "east_bins",
+        "table": [
+            {"east_lo_m": -100e3, "east_hi_m": -90e3, "bias_xyz_m": [10.0, -5.0, 2.0]},
+            {"east_lo_m": -90e3, "east_hi_m": -80e3, "bias_xyz_m": [30.0, 5.0, -2.0]},
+        ],
+    }
+    p = tmp_path / "corr.json"
+    p.write_text(json.dumps(corr), encoding="utf-8")
+    c = load_registration_correction(p)
+    assert np.allclose(registration_bias(-95e3, c), [10.0, -5.0, 2.0])   # bin 내부
+    assert np.allclose(registration_bias(-85e3, c), [30.0, 5.0, -2.0])
+    assert np.allclose(registration_bias(-200e3, c), [10.0, -5.0, 2.0])  # 왼쪽 클램프
+    assert np.allclose(registration_bias(0.0, c), [30.0, 5.0, -2.0])     # 오른쪽 클램프
+    assert load_registration_correction(tmp_path / "none.json") is None
+
+
 def test_aggregate(cfg: dict, tmp_path: Path) -> None:
     config_path = tmp_path / "config.yaml"
     config_path.write_text("mc:\n  bootstrap_n: 20\n", encoding="utf-8")
@@ -59,17 +78,18 @@ def test_aggregate(cfg: dict, tmp_path: Path) -> None:
         {"seed": s, "t_c": float(t), "tau_wallclock_s": 0.1 + 0.01 * s}
         for s in range(8) for t in range(3)
     ]
-    # 발산 런(NaN 착륙점) 1개 추가 — CEP·타원에서 제외되고 따로 집계돼야 한다
+    # 발산 런 2개 추가: NaN 착륙점 + 유한하지만 crash_error_m 초과 추락 — 둘 다 분리돼야 한다
     div = _run_rec(8, float("nan"), float("nan"))
     div["landing_error_m"] = float("nan")
     div["landing_v_mps"] = float("nan")
     runs.append(div)
+    runs.append(_run_rec(9, -27000.0, 6000.0))  # 연관 실패 추락(유한값)
     out = aggregate(cfg, runs, meas, params={"tau": "wallclock"},
                     failed_seeds=[99], config_path=config_path)
     assert out["cep_m"] == pytest.approx(45.0)  # 착륙 8런만으로 계산
-    assert out["params"]["n_runs"] == 9
+    assert out["params"]["n_runs"] == 10
     assert out["n_landed"] == 8
-    assert out["n_diverged"] == 1 and out["diverged_seeds"] == [8]
+    assert out["n_diverged"] == 2 and out["diverged_seeds"] == [8, 9]
     assert np.isfinite(out["landing_v_mean_mps"])
     assert out["failed_seeds"] == [99]
     assert out["r95_m"] == pytest.approx(np.percentile(np.arange(10.0, 90.0, 10.0), 95))

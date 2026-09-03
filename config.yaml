@@ -79,6 +79,7 @@ mc:
   n_runs: 200
   workers: 8
   bootstrap_n: 1000            # CEP 부트스트랩 95% CI 리샘플 횟수
+  crash_error_m: 5000          # 착륙 오차가 이보다 크면 발산/추락으로 분류(CEP·타원 제외, 별도 집계)
 
 detector:
   model: yolo11n.pt            # YOLO 계열 nano. 계열 내 최신 nano로 교체 가능

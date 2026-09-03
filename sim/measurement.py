@@ -70,6 +70,27 @@ class StatMeasurementModel:
         return r_true + self.rng.normal(0.0, self.sigma), True
 
 
+def load_registration_correction(path: str | Path) -> dict | None:
+    """정합 보정 테이블(scripts/calibrate_registration.py --fit) 로드. 없으면 None."""
+    p = Path(path)
+    if not p.exists():
+        return None
+    corr = json.loads(p.read_text(encoding="utf-8"))
+    if corr.get("kind") != "east_bins" or not corr.get("table"):
+        raise ValueError(f"알 수 없는 보정 테이블 형식: {path}")
+    return corr
+
+
+def registration_bias(east_m: float, corr: dict) -> np.ndarray:
+    """예측 East 위치의 정합 바이어스 b [E,N,U]. 테이블 밖은 최근접 bin으로 클램프."""
+    table = corr["table"]
+    for b in table:
+        if b["east_lo_m"] <= east_m < b["east_hi_m"]:
+            return np.asarray(b["bias_xyz_m"], dtype=float)
+    edge = table[0] if east_m < table[0]["east_lo_m"] else table[-1]
+    return np.asarray(edge["bias_xyz_m"], dtype=float)
+
+
 class UnityMeasurementModel:
     """Unity-in-the-loop 측정 (P6): 렌더 → 탐지 → 연관(EKF 예측 pose) → PnP → z.
 
@@ -100,6 +121,10 @@ class UnityMeasurementModel:
         if self.frames_dir:
             self.frames_dir.mkdir(parents=True, exist_ok=True)
         self.assumed = False  # 실측정 경로
+        # 정합 보정(P8b): measurement.registration_correction에 경로가 있으면 z에서
+        # b(r̂_East)를 뺀다. 기본 config에는 키가 없어 꺼짐(기존 결과 재현 불변).
+        corr_path = cfg["measurement"].get("registration_correction")
+        self.reg_corr = load_registration_correction(corr_path) if corr_path else None
 
     def sample_frame(
         self, r_true: np.ndarray, r_pred: np.ndarray, frame_id: int, t: float
@@ -133,6 +158,8 @@ class UnityMeasurementModel:
         if self.frames_dir is not None:
             self._save_overlay(img, boxes, centers, r_pred, frame_id, pairs)
         z = res["r_PnP"]
+        if z is not None and self.reg_corr is not None:
+            z = np.asarray(z, dtype=float) - registration_bias(float(r_pred[0]), self.reg_corr)
         return {
             "z": None if z is None else np.asarray(z, dtype=float),
             "valid": bool(res["valid"]),

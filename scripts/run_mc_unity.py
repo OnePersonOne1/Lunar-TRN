@@ -62,12 +62,14 @@ def aggregate(cfg: dict, runs: list[dict], meas_rows: list[dict], params: dict,
               failed_seeds: list[int], config_path: Path) -> dict:
     """완료 런 목록 → 결과 dict (CEP·CI·타원·R95·τ 분포·게이트 통계).
 
-    발산 런(landing_xy 비유한 — 필터 발산으로 미착륙)은 CEP·타원에서 제외하고
-    n_diverged/diverged_seeds로 따로 보고한다.
+    발산 런(landing_xy 비유한, 또는 착륙 오차 > mc.crash_error_m — 필터 발산/추락)은
+    CEP·타원에서 제외하고 n_diverged/diverged_seeds로 따로 보고한다.
     """
+    crash_m = float(cfg["mc"].get("crash_error_m", np.inf))
     xy_all = np.asarray([[np.nan, np.nan] if r["landing_xy_m"] is None
                          else r["landing_xy_m"] for r in runs], dtype=float)
-    finite = np.isfinite(xy_all).all(axis=1)
+    finite = (np.isfinite(xy_all).all(axis=1)
+              & (np.linalg.norm(np.nan_to_num(xy_all, nan=np.inf), axis=1) <= crash_m))
     diverged_seeds = [runs[i]["seed"] for i in np.flatnonzero(~finite)]
     landed = [r for r, f in zip(runs, finite) if f]
     xy = xy_all[finite]
@@ -145,10 +147,14 @@ def main() -> None:
     ap.add_argument("--ckpt", default="results/p8_unity_mc_runs.jsonl")
     ap.add_argument("--out", default="results/p8_unity_mc.json")
     ap.add_argument("--meas-log-out", default="results/p8_unity_mc_meas.jsonl")
+    ap.add_argument("--reg-correction", default=None,
+                    help="정합 보정 테이블 경로 (registration_correction.json) — 주면 켬")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh)
+    if args.reg_correction:
+        cfg["measurement"]["registration_correction"] = args.reg_correction
     tau: float | str = args.tau if args.tau == "wallclock" else float(args.tau)
     ckpt, meas_out = Path(args.ckpt), Path(args.meas_log_out)
 
@@ -189,7 +195,8 @@ def main() -> None:
     out = aggregate(cfg, runs, load_jsonl(meas_out),
                     params={"measurement": "unity", "tau": args.tau,
                             "detector": args.detector, "seed0": args.seed0,
-                            "cpu_threads": int(cfg["bench"]["cpu_threads"])},
+                            "cpu_threads": int(cfg["bench"]["cpu_threads"]),
+                            "registration_correction": args.reg_correction},
                     failed_seeds=failed, config_path=Path(args.config))
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=2), encoding="utf-8")

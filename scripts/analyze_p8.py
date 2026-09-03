@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from sim.mc import result_meta  # noqa: E402
 
-BLUE, ORANGE, GRAY, INK = "#1452C7", "#D16608", "#8A93A0", "#3B4148"
+BLUE, ORANGE, GREEN, GRAY, INK = "#1452C7", "#D16608", "#087A29", "#8A93A0", "#3B4148"
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -37,14 +37,17 @@ def _style(ax) -> None:
         ax.spines[s].set_visible(False)
 
 
-def fig_dispersion(mc: dict, stat: dict, out: Path) -> None:
+def fig_dispersion(mc: dict, stat: dict, out: Path, mc_corr: dict | None = None) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.patches import Ellipse
 
     fig, ax = plt.subplots(figsize=(7.5, 7.5))
-    for d, col, name in ((stat, ORANGE, "stat MC"), (mc, BLUE, "Unity MC")):
+    groups = [(stat, ORANGE, "stat MC"), (mc, BLUE, "Unity MC")]
+    if mc_corr is not None:
+        groups.append((mc_corr, GREEN, "Unity MC + reg. corr."))
+    for d, col, name in groups:
         xy = np.asarray(d["landing_xy_m"])
         ax.scatter(xy[:, 0], xy[:, 1], s=14, color=col, alpha=0.45, lw=0, label=name)
         e = d["ellipse95"]
@@ -53,17 +56,28 @@ def fig_dispersion(mc: dict, stat: dict, out: Path) -> None:
     ax.plot(0, 0, "+", color=INK, ms=14, mew=2)
     ax.annotate("target", (0, 0), xytext=(8, 8), textcoords="offset points",
                 color=INK, fontsize=9)
+    # 축은 p99 반경까지 — 발산성 추락(수 km급) 1런이 축을 망치지 않게 하고 주석으로 표기
+    all_xy = np.vstack([np.asarray(d["landing_xy_m"]) for d, _, _ in groups])
+    lim = max(450.0, 1.15 * float(np.percentile(np.linalg.norm(all_xy, axis=1), 99)))
+    n_out = int((np.abs(all_xy) > lim).any(axis=1).sum())
+    ax.set_xlim(-lim, lim)
+    ax.set_ylim(-lim, lim)
+    if n_out:
+        ax.annotate(f"{n_out} run(s) outside view (association-failure crash)",
+                    xy=(0.02, 0.02), xycoords="axes fraction", fontsize=8.5, color=INK)
     ax.set_xlabel("East [m]")
     ax.set_ylabel("North [m]")
     ax.set_aspect("equal")
     _style(ax)
     ax.legend(loc="upper right", frameon=False)
-    ax.set_title(
-        f"Landing dispersion, n={len(mc['landing_xy_m'])}/{len(stat['landing_xy_m'])}\n"
+    title = (
         f"Unity MC CEP {mc['cep_m']:.1f} m [{mc['cep_ci95_m'][0]:.1f}, {mc['cep_ci95_m'][1]:.1f}]"
         f"  ·  stat MC CEP {stat['cep_m']:.1f} m "
-        f"[{stat['cep_ci95_m'][0]:.1f}, {stat['cep_ci95_m'][1]:.1f}]",
-        fontsize=11, color=INK)
+        f"[{stat['cep_ci95_m'][0]:.1f}, {stat['cep_ci95_m'][1]:.1f}]")
+    if mc_corr is not None:
+        title += (f"\n+ registration corr. CEP {mc_corr['cep_m']:.1f} m "
+                  f"[{mc_corr['cep_ci95_m'][0]:.1f}, {mc_corr['cep_ci95_m'][1]:.1f}]")
+    ax.set_title(f"Landing dispersion (n=200/group)\n{title}", fontsize=10.5, color=INK)
     fig.tight_layout()
     fig.savefig(out, dpi=200)
     plt.close(fig)
@@ -155,6 +169,8 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)  # 결정론 집계 — 시드 미사용
     ap.add_argument("--out", default="figs", help="그림 출력 디렉터리")
     ap.add_argument("--mc", default="results/p8_unity_mc.json")
+    ap.add_argument("--mc-corr", default="results/p8_unity_mc_corr.json",
+                    help="정합 보정 실런 MC (없으면 생략)")
     ap.add_argument("--meas", default="results/p8_unity_mc_meas.jsonl")
     ap.add_argument("--baseline", default="results/p7b_baseline.json")
     ap.add_argument("--p6", default="results/p6_closed_loop.json")
@@ -169,10 +185,12 @@ def main() -> None:
     mc, stat, p6, p5, bench = (jload(args.mc), jload(args.baseline), jload(args.p6),
                                jload(args.p5_alt), jload(args.bench))
     meas = load_jsonl(Path(args.meas))
+    mc_corr = (json.loads(Path(args.mc_corr).read_text(encoding="utf-8"))
+               if Path(args.mc_corr).exists() else None)
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    fig_dispersion(mc, stat, out_dir / "p8_landing_dispersion.png")
+    fig_dispersion(mc, stat, out_dir / "p8_landing_dispersion.png", mc_corr)
     loop_rows, ds_rows = fig_err_vs_altitude(meas, p5, out_dir / "p8_err_vs_altitude_inloop.png")
     fig_tau_hist(meas, bench, out_dir / "p8_tau_inloop_hist.png")
 
@@ -193,6 +211,9 @@ def main() -> None:
         "n_diverged_unity": mc.get("n_diverged", 0),
         "unity_mean_offset_m": unity_xy.mean(axis=0).tolist(),  # 계통 편향(바이어스) 벡터
         "unity_bias_norm_m": float(np.linalg.norm(unity_xy.mean(axis=0))),
+        # 중앙값 기반(로버스트): 연관 실패 추락 런 1개가 평균을 오염시키는 것 방지
+        "unity_median_offset_m": np.median(unity_xy, axis=0).tolist(),
+        "unity_bias_med_norm_m": float(np.linalg.norm(np.median(unity_xy, axis=0))),
         "stat_mean_offset_m": stat_xy.mean(axis=0).tolist(),
         "stat_bias_norm_m": float(np.linalg.norm(stat_xy.mean(axis=0))),
         "tau_inloop_median_ms": mc["tau_wallclock_s"]["median"] * 1e3,
@@ -201,6 +222,17 @@ def main() -> None:
         "tau_bench_p95_ms": float(np.percentile(tb, 95)),
         "sigma_vs_altitude": {"in_loop": loop_rows, "dataset_iid": ds_rows},
     }
+    if mc_corr is not None:
+        cxy = np.asarray(mc_corr["landing_xy_m"])
+        summary.update({
+            "cep_unity_corr_m": mc_corr["cep_m"],
+            "cep_unity_corr_ci95_m": mc_corr["cep_ci95_m"],
+            "unity_corr_bias_norm_m": float(np.linalg.norm(cxy.mean(axis=0))),
+            "unity_corr_median_offset_m": np.median(cxy, axis=0).tolist(),
+            "unity_corr_bias_med_norm_m": float(np.linalg.norm(np.median(cxy, axis=0))),
+            "r95_over_cep_unity_corr": mc_corr["r95_over_cep"],
+            "n_diverged_unity_corr": mc_corr.get("n_diverged", 0),
+        })
     Path(args.summary_out).write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(f"summary: {args.summary_out}")
 

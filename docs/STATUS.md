@@ -1,5 +1,30 @@
 # STATUS
 
+## P8b · 씬-카탈로그 정합 진단·보정 — 실런 바이어스 원인 규명 (2026-09-03 야간)
+
+- 배경: P8 실런 MC의 CEP 297.8 m가 계통 바이어스(290 m) 지배임이 확인됨 → 원인 진단.
+- 진단(`scripts/calibrate_registration.py`): 회랑 참값 pose 101곳 × 태양각 2종(135°/315°)
+  개루프 렌더→탐지→연관(참값 pose)→PnP로 오차 **벡터** e(t) 실측. 결과: 전체 중앙값
+  바이어스는 [15, 23, 19] m로 작지만 **East 빈 중앙값이 트랙을 따라 +60→−80→+120 m로
+  굽이침**(figs/p8_reg_diag.png). 태양각 2종 일치 → 조명 아닌 씬-카탈로그 정합.
+  메커니즘: b(r)의 along-track 변화율을 EKF가 속도로 흡수 → 밴드 이탈 후 250 s
+  IMU 단독 coast에서 증폭 (1.2 m/s × 250 s ≈ 290 m, 자릿수 일치).
+- 보정: `--fit east_bins`로 East 10 km 구간 8-bin 바이어스 중앙값 테이블
+  (results/registration_correction.json). `UnityMeasurementModel`이
+  measurement.registration_correction 키(기본 없음=꺼짐)로 z에서 b(r̂_East) 차감 —
+  계약 §2.4의 z 정의·필터 불변, 기존 결과 재현 불변. 실제 임무의 사전(pre-flight)
+  맵타이 보정에 해당(참값 pose 사용은 오프라인 보정이므로 정당, limitations 명시).
+- 재검증(실런 MC n=200, wallclock τ, 보정 on): **CEP 297.8 → 133.2 m [120.7, 139.5]**,
+  잔여 바이어스(중앙값) 101.5 m, 통계 MC 110.8 m [98.0, 132.5]와 CI 인접(약간 겹침).
+  seed 14는 이번에도 초기 연관 실패로 추락(27.9 km, 유한값) — mc.crash_error_m(5000 m,
+  config 신설)로 발산/추락 분류 일관화(CEP·타원 제외, n_diverged 집계).
+- 테스트: `pytest -q` 69 passed — 보정 룩업·클램프, 추락 분류 테스트 추가.
+- 생성: results/p8_reg_diag.json, registration_correction.json, p8_unity_mc_corr.json,
+  p8_summary.json(corr 키 추가), figs/p8_reg_diag.png, p8_landing_dispersion.png(3원),
+  results_summary.md 39행(정합보정 5행 추가).
+- 다음: 잔여 바이어스(~100 m, 10 km bin 조도 한계) — 5 km bin 또는 2차 보정은 10월.
+  seed 14류 초기 연관 실패는 lost-in-space 매칭(10월)의 몫. 스토리보드에 3원 산포도 반영 권장.
+
 ## P8 · Unity 실런 몬테카를로 — 프레임별 실측 τ(wallclock) n=200 (2026-09-03)
 
 - 실행 조건: `scripts/run_mc_unity.py` — measurement=unity, tau=wallclock(프레임별

@@ -1,8 +1,8 @@
 {
   "meta": {
-    "git_hash": "5b466b0974738e81092f2452c72507e0f31b092c",
-    "config_hash": "9f076c168d1a081f6a3b20ba7c699473f09c359f8bf3d28378beae27832ecf3b",
-    "timestamp": "2026-09-03T08:59:13.984973+00:00",
+    "git_hash": "33ec726ba1cc4025c989cfaf62df3067b610b187",
+    "config_hash": "1f94d91018a48253c48ea5bdf6d4266eac1a2df8f1103a4c91c3f0b84398e486",
+    "timestamp": "2026-09-03T14:56:25.605323+00:00",
     "hardware": {
       "platform": "Windows-11-10.0.26200-SP0",
       "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
@@ -15,6 +15,7 @@
     "detector": "runs/export/crater_int8_ort.onnx",
     "seed0": 0,
     "cpu_threads": 1,
+    "registration_correction": null,
     "n_runs": 200
   },
   "n_landed": 199,

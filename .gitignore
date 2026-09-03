@@ -33,3 +33,4 @@ data/dataset_highlands/
 results/p8_*_runs.jsonl
 results/p8_unity_mc_meas.jsonl
 results/p8_smoke*
+results/p8_*_meas.jsonl

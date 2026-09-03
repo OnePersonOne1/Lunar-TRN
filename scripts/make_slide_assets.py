@@ -75,6 +75,11 @@ SUMMARY = [
     ("실런 τ 중앙값 [ms]", "p8_unity_mc.json", "tau_wallclock_s.median", "{:.1f}", 1e3),
     ("실런 MC 바이어스(평균 오프셋 크기) [m]", "p8_summary.json", "unity_bias_norm_m", "{:.1f}"),
     ("실런 MC 발산 런 수 (/200)", "p8_unity_mc.json", "n_diverged", "{:.0f}"),
+    ("실런 MC CEP 정합보정 후 [m]", "p8_unity_mc_corr.json", "cep_m", "{:.1f}"),
+    ("실런 MC CEP 정합보정 CI 하한 [m]", "p8_unity_mc_corr.json", "cep_ci95_m[0]", "{:.1f}"),
+    ("실런 MC CEP 정합보정 CI 상한 [m]", "p8_unity_mc_corr.json", "cep_ci95_m[1]", "{:.1f}"),
+    ("정합보정 후 잔여 바이어스(중앙값) [m]", "p8_summary.json", "unity_corr_bias_med_norm_m", "{:.1f}"),
+    ("정합 진단 오차 로버스트 σ East [m]", "p8_reg_diag.json", "sigma_mad_xyz_m[0]", "{:.1f}"),
 ]
 
 

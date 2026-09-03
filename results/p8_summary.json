@@ -1,8 +1,8 @@
 {
   "meta": {
-    "git_hash": "5b466b0974738e81092f2452c72507e0f31b092c",
-    "config_hash": "9f076c168d1a081f6a3b20ba7c699473f09c359f8bf3d28378beae27832ecf3b",
-    "timestamp": "2026-09-03T09:00:24.598994+00:00",
+    "git_hash": "33ec726ba1cc4025c989cfaf62df3067b610b187",
+    "config_hash": "1f94d91018a48253c48ea5bdf6d4266eac1a2df8f1103a4c91c3f0b84398e486",
+    "timestamp": "2026-09-03T14:56:36.675981+00:00",
     "hardware": {
       "platform": "Windows-11-10.0.26200-SP0",
       "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
@@ -29,6 +29,11 @@
     148.25752453220795
   ],
   "unity_bias_norm_m": 289.9713657316464,
+  "unity_median_offset_m": [
+    -247.98664036658016,
+    149.09796514420435
+  ],
+  "unity_bias_med_norm_m": 289.3571789509393,
   "stat_mean_offset_m": [
     -32.96217587079615,
     0.775590932536594
@@ -139,5 +144,18 @@
         "sigma_m": 147.4
       }
     ]
-  }
+  },
+  "cep_unity_corr_m": 133.2150689393898,
+  "cep_unity_corr_ci95_m": [
+    120.68104888238717,
+    139.46208447540212
+  ],
+  "unity_corr_bias_norm_m": 100.8392834595359,
+  "unity_corr_median_offset_m": [
+    -81.22692984202617,
+    -60.82862655476433
+  ],
+  "unity_corr_bias_med_norm_m": 101.47874624816973,
+  "r95_over_cep_unity_corr": 1.8664710161136933,
+  "n_diverged_unity_corr": 1
 }
