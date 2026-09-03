@@ -30,3 +30,6 @@ __pycache__/
 .pytest_cache/
 data/dataset/
 data/dataset_highlands/
+results/p8_*_runs.jsonl
+results/p8_unity_mc_meas.jsonl
+results/p8_smoke*

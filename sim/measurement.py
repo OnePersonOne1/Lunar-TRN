@@ -104,7 +104,8 @@ class UnityMeasurementModel:
     def sample_frame(
         self, r_true: np.ndarray, r_pred: np.ndarray, frame_id: int, t: float
     ) -> dict:
-        """한 프레임 측정. 반환: z, valid, tau_wallclock_s, n_det, n_match, n_inliers,
+        """한 프레임 측정. 반환: z, valid, tau_wallclock_s(탐지+연관+PnP),
+        tau_det_s(탐지만), h_true_m(촬영 시 참값 고도), n_det, n_match, n_inliers,
         pnp_err_m(참값 대비), reproj_err_px."""
         import time as _time
 
@@ -114,6 +115,7 @@ class UnityMeasurementModel:
         img = self.client.render(r_true, self.sun_az, self.sun_el, frame_id=frame_id, t=t)
         t0 = _time.perf_counter()
         boxes = self.detector.detect(img)  # (n, 6) [x0, y0, x1, y1, conf, cls]
+        tau_det = _time.perf_counter() - t0
         centers = (
             np.empty((0, 2))
             if len(boxes) == 0
@@ -135,6 +137,8 @@ class UnityMeasurementModel:
             "z": None if z is None else np.asarray(z, dtype=float),
             "valid": bool(res["valid"]),
             "tau_wallclock_s": tau_wall,
+            "tau_det_s": tau_det,
+            "h_true_m": float(r_true[2]),
             "n_det": int(len(centers)),
             "n_match": int(len(pairs)),
             "n_inliers": int(res["n_inliers"]),

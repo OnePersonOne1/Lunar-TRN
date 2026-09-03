@@ -69,6 +69,12 @@ SUMMARY = [
     ("CEP 고전 PCA [m]", "p7c_cep_compare.json", "conditions[label=classic_pca].cep_m", "{:.1f}"),
     ("CEP YOLO INT8 (동일 조건) [m]", "p7c_cep_compare.json",
      "conditions[label=yolo_int8].cep_m", "{:.1f}"),
+    ("실런 MC CEP [m]", "p8_unity_mc.json", "cep_m", "{:.1f}"),
+    ("실런 MC CEP CI 하한 [m]", "p8_unity_mc.json", "cep_ci95_m[0]", "{:.1f}"),
+    ("실런 MC CEP CI 상한 [m]", "p8_unity_mc.json", "cep_ci95_m[1]", "{:.1f}"),
+    ("실런 τ 중앙값 [ms]", "p8_unity_mc.json", "tau_wallclock_s.median", "{:.1f}", 1e3),
+    ("실런 MC 바이어스(평균 오프셋 크기) [m]", "p8_summary.json", "unity_bias_norm_m", "{:.1f}"),
+    ("실런 MC 발산 런 수 (/200)", "p8_unity_mc.json", "n_diverged", "{:.0f}"),
 ]
 
 

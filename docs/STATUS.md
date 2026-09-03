@@ -1,5 +1,30 @@
 # STATUS
 
+## P8 · Unity 실런 몬테카를로 — 프레임별 실측 τ(wallclock) n=200 (2026-09-03)
+
+- 실행 조건: `scripts/run_mc_unity.py` — measurement=unity, tau=wallclock(프레임별
+  탐지+연관+PnP 실측), detector=runs/export/crater_int8_ort.onnx(ORT CPU 1스레드),
+  seed 0~199, 직렬 1워커(Unity 서버 1개), frames_dir 없음(PNG 미저장), 런당 ~35 s·총 ~2 h.
+  시드별 체크포인트(jsonl, .gitignore) 재개 지원.
+- 완료 200/200, 통신 실패 시드 0. **발산 1런(seed 14)**: 첫 프레임부터 연관 실패
+  (매칭 26·인라이어 0~6, PnP 오차 km급) → 게이트 대량 기각(수락 11%) 중 초기 3개 통과
+  → 필터 발산. 최근접 연관의 lost-in-space 한계(TODO oct) 실증 사례. 집계에서
+  n_diverged로 분리 보고(CEP는 착륙 199런 기준).
+- 핵심 수치: docs/results_summary.md "실런 MC" 행(= results/p8_unity_mc.json,
+  p8_summary.json)만 인용. 요지: 실런 CEP는 통계 MC 대비 배수(ratio_unity_over_stat)이며
+  갭의 지배 성분은 분산이 아니라 계통 바이어스(unity_bias_norm_m ≈ CEP,
+  R95/CEP 1.39 vs 통계 2.32). 프레임 단위 PnP 산포(고도 bin 로버스트 σ)는
+  데이터셋 iid보다 오히려 작음 — figs/p8_err_vs_altitude_inloop.png.
+- 테스트 결과: `pytest -q` 68 passed — tests/test_p8.py 3건 신규(체크포인트 재개,
+  meas 중복 제거, 발산 런 분리 집계).
+- 생성 파일: results/p8_unity_mc.json, p8_summary.json, figs/p8_landing_dispersion.png,
+  p8_err_vs_altitude_inloop.png, p8_tau_inloop_hist.png, scripts/run_mc_unity.py,
+  analyze_p8.py, sim/measurement.py에 tau_det_s·h_true_m 기록 추가,
+  results_summary.md 매니페스트 6행 추가(34행).
+- 수동 작업 필요: 없음.
+- 다음 단계: 바이어스 원인 분해(합성 씬-카탈로그 정합·시간상관·IMU bias, 10월),
+  슬라이드에 실런 MC 산포도 반영 여부 판단(스토리보드 슬라이드 9/13 후보).
+
 ## P7c · 고전(PCA 템플릿) 탐지 베이스라인 비교 — mAP·CEP 양축 (2026-09-03)
 
 - 완료:
