@@ -1,0 +1,10 @@
+{
+  "sigma_xyz_m": [
+    460.402677319817,
+    512.0963247451213,
+    157.87844771759836
+  ],
+  "fp_rate_est": 0.15053763440860216,
+  "fp_offset_med_m": 3871.034338718981,
+  "source": "results\\measurement_model_classic.json"
+}

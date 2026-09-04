@@ -1,5 +1,30 @@
 # STATUS
 
+## P9 · 탐지기×온보드 등급 매트릭스 — 정밀 지도 가정 통계 MC (2026-09-04)
+
+- 목적(본래 연구 질문): 탐지기 선택(mAP 차이)과 τ(연산 등급)가 착륙 CEP에 미치는 영향의
+  전 조합 정량화. 정밀 지도 가정 = Tier 2 통계 MC(계통 정합 오차 없음 — P8b에서 정합
+  보정 후 실런이 통계 MC에 CI 인접 수렴함이 근거).
+- 매트릭스: 탐지기 5(n/s×FP32/INT8 + classic PCA — mAP 0.09~0.997 스팬) × 온보드 등급 3
+  (차세대 HPSC ×1.0 가정·현세대 GR740 ×95.7·구세대 HR5000 ×127.0, p7b_cpu_bench DMIPS)
+  × 지연보상 on/off = 30조건 × MC 200런(시드 공통). mAP→σ는 수식 유도 없이 탐지기별
+  개루프 보정 실측(measurement_model*.json → results/p9_meas_*.json 파생) 사용.
+  τ=상수(스케일된 중앙값), 1 Hz 직렬. `scripts/sweep_matrix.py`, 실행 ~50분.
+- 핵심 구조(수치는 p9_matrix.json·results_summary.md "P9" 행):
+  ① 차세대+보상: YOLO 4종 CEP 118~127 m 동급 — τ가 전부 주기 미만이라 모델·양자화
+  선택이 무차별. classic만 664 m(측정 품질 지배). ② 현세대/구세대: τ 19~68 s → 측정
+  2~6개/비행으로 붕괴, CEP 520~2159 m — 소프트웨어 탐지 TRN 성립 불가(2~4개 측정도
+  보상 덕에 IMU 드리프트는 절반 이하로 줄여줌). ③ 미보상: τ≥19 s 전 조건이 ~2333 m
+  동일(게이트 전량 기각 → IMU 드리프트 바닥) — 보상 없이는 등급 간 차이도 소멸.
+  ④ mAP vs CEP 산점도: 같은 mAP 0.99가 등급에 따라 CEP 118→1017 m — mAP 단독으로는
+  착륙 성능 순서를 못 정한다는 핵심 주장 그림.
+- 교차 검증: n_int8/차세대/보상 on 126.6 m = P7c 동일 조건(p7c_cep_compare yolo_int8)과 일치.
+- 테스트: pytest 71 passed (tests/test_p9.py 파생 모델·등급 스케일 2건 신규).
+- 생성: results/p9_matrix.json, p9_meas_*.json(5), figs/p9_matrix_heatmap.png,
+  p9_map_vs_cep.png, scripts/sweep_matrix.py, analyze_p9.py.
+- 다음: 슬라이드 반영 판단(히트맵이 온보드 맥락 슬라이드 8/10 대체 후보), 5 Hz·가속기
+  참조점 추가는 선택.
+
 ## P8b · 씬-카탈로그 정합 진단·보정 — 실런 바이어스 원인 규명 (2026-09-03 야간)
 
 - 배경: P8 실런 MC의 CEP 297.8 m가 계통 바이어스(290 m) 지배임이 확인됨 → 원인 진단.

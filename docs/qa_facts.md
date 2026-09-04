@@ -78,6 +78,13 @@
   지연이 아니라 측정 품질로 들어온다. (p7c_det_compare, p7c_cep_compare, docs/classic_baseline.md)
 - SLIM 정합성(plausibility): 측정 성공률 0.98 vs 14/14, σ수평 ≈85 m(GSD 대비 수 px),
   CEP 110.8 m vs ~10 m. 검증 아님(센서·자유도·측정 고도 구간 상이). (p7_slim_comparison.json)
+- **P9 매트릭스(탐지기 5 × 등급 3 × 보상 2, n=200, 정밀 지도 가정)**: ① 차세대+보상은
+  YOLO 4종 118~127 m 동급(τ<주기 → 모델·양자화 무차별), classic 664 m(측정 품질 지배)
+  ② 현세대(GR740급 ×96)/구세대(HR5000급 ×127)는 τ 19~68 s → 측정 2~6개, CEP 520~2159 m
+  — SW 탐지 TRN 성립 불가 ③ 미보상은 τ≥19 s 전 조건 ~2333 m 동일(게이트 전량 기각 =
+  IMU 드리프트 바닥) ④ 같은 mAP 0.99가 등급 따라 118→1017 m — mAP 단독으로는 착륙
+  성능을 못 정렬. mAP→σ는 수식이 아니라 탐지기별 개루프 보정 실측 사용.
+  (p9_matrix.json, figs/p9_matrix_heatmap.png, p9_map_vs_cep.png)
 - MC 500회 이상은 10월 본실험(계획서 2단계). 현재 n=200은 결선용 예비.
 
 ## 7. 신규성·선행연구

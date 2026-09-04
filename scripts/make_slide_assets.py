@@ -80,6 +80,16 @@ SUMMARY = [
     ("실런 MC CEP 정합보정 CI 상한 [m]", "p8_unity_mc_corr.json", "cep_ci95_m[1]", "{:.1f}"),
     ("정합보정 후 잔여 바이어스(중앙값) [m]", "p8_summary.json", "unity_corr_bias_med_norm_m", "{:.1f}"),
     ("정합 진단 오차 로버스트 σ East [m]", "p8_reg_diag.json", "sigma_mad_xyz_m[0]", "{:.1f}"),
+    ("P9 차세대 n INT8 CEP [m]", "p9_matrix.json",
+     "conditions[p9=n_int8:next_gen:on].cep_m", "{:.1f}"),
+    ("P9 차세대 s FP32 CEP [m]", "p9_matrix.json",
+     "conditions[p9=s_fp32:next_gen:on].cep_m", "{:.1f}"),
+    ("P9 차세대 classic CEP [m]", "p9_matrix.json",
+     "conditions[p9=classic_pca:next_gen:on].cep_m", "{:.1f}"),
+    ("P9 구세대 n INT8 CEP [m]", "p9_matrix.json",
+     "conditions[p9=n_int8:legacy:on].cep_m", "{:.1f}"),
+    ("P9 구세대 n INT8 미보상 CEP [m]", "p9_matrix.json",
+     "conditions[p9=n_int8:legacy:off].cep_m", "{:.1f}"),
 ]
 
 
@@ -96,6 +106,10 @@ def _dig(obj, path: str):
                 obj = next(c for c in obj if c["rate_hz"] == 5 and c["label"] == "n INT8 CPU")
             elif sel == "rate5_nfp32":
                 obj = next(c for c in obj if c["rate_hz"] == 5 and c["label"] == "n FP32 CPU")
+            elif sel.startswith("p9="):
+                det, cls, comp = sel[3:].split(":")
+                obj = next(c for c in obj if c["detector"] == det and c["class"] == cls
+                           and c["delay_comp"] == (comp == "on"))
             elif "=" in sel:
                 k, v = sel.split("=", 1)
                 key = {"label": "label", "fp": "fp_rate", "tau": "tau_s",
