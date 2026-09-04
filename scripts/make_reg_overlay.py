@@ -71,8 +71,17 @@ def main() -> None:
         cv2.drawMarker(crop, (int((u - u0) * up), int((v - v0) * up)), (0, 60, 255),
                        cv2.MARKER_CROSS, 20, 2)
         crop = cv2.resize(crop, (480, 480), interpolation=cv2.INTER_AREA)
+        # 물리 길이 스케일 바 — 패널마다 확대 배율이 달라 픽셀 눈대중이 오독되는 것 방지.
+        # 배율에 따라 바가 최소 60px은 되도록 500 m~5 km 중에서 선택.
+        px_per_m = 480.0 / (2 * win) / scale
+        bar_m = next((b for b in (500.0, 1000.0, 2000.0, 5000.0) if b * px_per_m >= 60.0),
+                     5000.0)
+        bar_px = int(round(bar_m * px_per_m))
+        cv2.line(crop, (466 - bar_px, 462), (466, 462), (0, 0, 0), 5)
+        cv2.line(crop, (466 - bar_px, 462), (466, 462), (255, 255, 255), 2)
+        bar_label = f"{bar_m / 1e3:g} km" if bar_m >= 1000 else f"{bar_m:.0f} m"
         for text, org in ((f"E={x / 1e3:.0f}km D={d_m / 1e3:.1f}km", (8, 24)),
-                          (f"1px_orig={scale:.0f}m", (8, 470))):
+                          (bar_label, (466 - bar_px, 450))):
             cv2.putText(crop, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3)
             cv2.putText(crop, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
         panels.append(crop)
