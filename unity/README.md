@@ -32,7 +32,12 @@ Unity는 센서 모사 전용이다. 좌표계 매핑(x=East, y=Up, z=North, L �
 
 ## 시연 재생 (P8 영상용, 측정과 무관)
 
-1. 궤적 생성(저장소 루트): `.venv\Scripts\python scripts\run_closed_loop.py --measurement truth --traj-out frames\traj_demo.csv --out results\tmp_truth.json`
+1. 궤적 생성(저장소 루트) — 두 종류, DemoPlayback Inspector의 `source` 드롭다운으로 선택:
+   - **RealRun(기본, 실런 EKF 항법)**: Unity Play 상태에서
+     `.venv\Scripts\python scripts\run_closed_loop.py --measurement unity --tau wallclock --seed 0 --traj-out frames\traj_real.csv --frames-dir frames\p6 --out results\tmp_p6_frames.json`
+     (오버레이 프레임까지 같은 비행에서 재생성 → Display 2/3/4가 한 비행으로 일관)
+   - **Truth(이상 유도, 오차 0 수렴)**: `.venv\Scripts\python scripts\run_closed_loop.py --measurement truth --traj-out frames\traj_demo.csv --out results\tmp_truth.json`
+   - 실런 csv가 없으면 자동으로 Truth로 폴백한다.
 2. Unity에서 지형 빌드 상태(**Build Scene**) 확인 → 메뉴 **LunarTRN → Add Demo Playback**
 3. Play → 간이 착륙선(박스+다리)이 궤적을 따라 하강, 추적 카메라가 Game 뷰에 표시 (350 s → 약 29 s)
    - 디스플레이 구성(Game 뷰 탭에서 Display 선택): 1=센서 미리보기, 2=착륙 추적, 3=탐지 오버레이(초록 원=매칭 카탈로그, 보라 원=미탐지, 주황 십자+conf=매칭 탐지, 보라 십자=비매칭 탐지), 4=텔레메트리 그래프

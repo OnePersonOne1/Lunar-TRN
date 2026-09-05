@@ -203,7 +203,8 @@ def load_traj(path: Path) -> dict[str, np.ndarray]:
     return {"t": d["t"], "alt_km": d["z"] / 1000.0, "spd": spd, "east_km": d["x"] / 1000.0}
 
 
-def make_telemetry_fig(traj: dict, cfg: dict, out: Path) -> None:
+def make_telemetry_fig(traj: dict, cfg: dict, out: Path,
+                       subtitle: str = "truth trajectory (ideal guidance)") -> None:
     import matplotlib
 
     matplotlib.use("Agg")
@@ -240,7 +241,7 @@ def make_telemetry_fig(traj: dict, cfg: dict, out: Path) -> None:
         color="#3B4148",
     )
     axes[-1].set_xlabel("t [s]")
-    fig.suptitle("Closed-loop descent telemetry (truth trajectory)")
+    fig.suptitle(f"Closed-loop descent telemetry ({subtitle})")
     fig.tight_layout()
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200)
@@ -272,7 +273,8 @@ def main() -> None:
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--seed", type=int, default=0)  # 결정론 산출물 — 시드 미사용
     ap.add_argument("--out", default="figs/slides", help="출력 디렉터리")
-    ap.add_argument("--traj", default="frames/traj_demo.csv")
+    ap.add_argument("--traj", default="frames/traj_demo.csv", help="truth 궤적")
+    ap.add_argument("--traj-real", default="frames/traj_real.csv", help="실런 궤적")
     ap.add_argument("--overlay-dir", default="frames/p6")
     ap.add_argument("--capture-dir", default="frames/demo")
     ap.add_argument("--timescale", type=float, default=8.0,
@@ -292,8 +294,17 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     copy_slide_figs(root, out_dir)
 
-    # 1) Display 4: 텔레메트리 최종 그래프
-    make_telemetry_fig(load_traj(Path(args.traj)), cfg, out_dir / "display4_telemetry.png")
+    # 1) Display 4: 텔레메트리 최종 그래프 — 실런 궤적이 있으면 그것이 대표본,
+    #    truth(이상 유도)는 _truth 접미사로 함께 생성 (시연·발표에서 구분 명시용)
+    real = Path(args.traj_real)
+    if real.exists():
+        make_telemetry_fig(load_traj(real), cfg, out_dir / "display4_telemetry.png",
+                           subtitle="closed-loop run, EKF navigation")
+        make_telemetry_fig(load_traj(Path(args.traj)), cfg,
+                           out_dir / "display4_telemetry_truth.png")
+    else:
+        print(f"note: {real} 없음 — 텔레메트리는 truth 궤적으로만 생성")
+        make_telemetry_fig(load_traj(Path(args.traj)), cfg, out_dir / "display4_telemetry.png")
 
     # 2) Display 3: 탐지 오버레이 영상 (1장 = 시뮬 1초 → timescale 배속 재생)
     if list(Path(args.overlay_dir).glob("[0-9]*.png")):

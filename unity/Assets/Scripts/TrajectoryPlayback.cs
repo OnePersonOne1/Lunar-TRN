@@ -9,7 +9,11 @@ using UnityEngine;
 
 public class TrajectoryPlayback : MonoBehaviour
 {
-    public string trajCsv = "../frames/traj_demo.csv"; // 프로젝트 루트(unity/) 기준
+    public enum TrajSource { RealRun, Truth }          // Inspector 드롭다운으로 궤적 선택
+
+    public TrajSource source = TrajSource.RealRun;     // 실런(EKF 항법) 기본, Truth = 이상 유도
+    public string trajCsv = "../frames/traj_demo.csv"; // Truth 궤적, 프로젝트 루트(unity/) 기준
+    public string trajCsvReal = "../frames/traj_real.csv"; // 실런 궤적 (run_closed_loop --measurement unity --traj-out)
     public float timeScale = 8.0f;                     // 단일 배속 — Display 2/3/4 공통 시계
     public bool captureFrames = false;                 // Play 중 PNG 저장 (ffmpeg로 mp4)
     public string captureDir = "../frames/demo";
@@ -39,7 +43,14 @@ public class TrajectoryPlayback : MonoBehaviour
 
     void Start()
     {
-        if (!LoadCsv(trajCsv)) { enabled = false; return; }
+        string path = source == TrajSource.RealRun ? trajCsvReal : trajCsv;
+        if (source == TrajSource.RealRun && !File.Exists(path))
+        {
+            Debug.LogWarning($"[TrajectoryPlayback] 실런 궤적 없음: {path} — Truth 궤적으로 폴백");
+            path = trajCsv;
+        }
+        Debug.Log($"[TrajectoryPlayback] source={source}, csv={path}");
+        if (!LoadCsv(path)) { enabled = false; return; }
         _lander = BuildLander();
         var camGo = new GameObject("ChaseCamera");
         _cam = camGo.AddComponent<Camera>();
