@@ -280,6 +280,8 @@ def main() -> None:
     ap.add_argument("--timescale", type=float, default=8.0,
                     help="시연 배속 — 오버레이(1장=1초)의 재생 프레임레이트")
     ap.add_argument("--fps", type=int, default=30, help="출력 영상 프레임레이트")
+    ap.add_argument("--capture-seconds", type=float, default=29.5,
+                    help="Unity 캡처 영상 목표 길이[s] (대회 30 s 규격) — 입력 fps 자동 산출")
     ap.add_argument("--results-dir", default="results")
     ap.add_argument("--summary-out", default="docs/results_summary.md")
     args = ap.parse_args()
@@ -325,9 +327,11 @@ def main() -> None:
     ]
     done = set()
     for glob_pat, ff_pat, out_name in seqs:
-        if out_name in done or not list(cap.glob(glob_pat)):
+        frames = list(cap.glob(glob_pat))
+        if out_name in done or not frames:
             continue
-        encode_video(str(cap / ff_pat), float(args.fps), args.fps, out_dir / out_name)
+        in_fps = len(frames) / args.capture_seconds  # 목표 길이에 맞춘 재생 속도
+        encode_video(str(cap / ff_pat), in_fps, args.fps, out_dir / out_name)
         done.add(out_name)
     if not done:
         print(f"skip: {cap}에 캡처 프레임 없음 (unity/README.md 시연 재생 참고)")
