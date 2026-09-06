@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -32,7 +31,7 @@ def _box(ax, x, y, w, h, title, sub=None):
     ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.02,rounding_size=0.06",
                                 fc=BOX_FC, ec=BOX_EC, lw=1.6))
     cy = y + h * (0.62 if sub else 0.5)
-    ax.text(x + w / 2, cy, title, ha="center", va="center", fontsize=11, weight="bold")
+    ax.text(x + w / 2, cy, title, ha="center", va="center", fontsize=13, weight="bold")
     if sub:
         ax.text(x + w / 2, y + h * 0.24, sub, ha="center", va="center",
                 fontsize=8.5, color=GRAY)
@@ -46,43 +45,29 @@ def _arrow(ax, x0, y0, x1, y1, label=None, color="black", ls="-", lift=8):
                     xytext=(0, lift), ha="center", fontsize=8.5, color=color)
 
 
-def pipeline(tau_ms: float, out: Path) -> None:
-    fig, ax = plt.subplots(figsize=(12.5, 3.6))
+def pipeline(out: Path) -> None:
+    """핵심 블록 6개 + 화살표만. 블록 제목 외 텍스트 없음."""
+    fig, ax = plt.subplots(figsize=(12.5, 2.9))
     ax.set_xlim(0, 100)
-    ax.set_ylim(0, 30)
+    ax.set_ylim(0, 24)
     ax.axis("off")
 
-    w, h, y = 13.5, 9.0, 14.5
+    w, h, y = 13.5, 8.5, 10.0
     xs = [2, 18.5, 35, 51.5, 68, 84.5]
-    _box(ax, xs[0], y, w, h, "3-DOF 동역학", "RK4 · 참값 상태")
-    _box(ax, xs[1], y, w, h, "Unity 렌더", "센서 모사 (DEM·WAC)")
-    _box(ax, xs[2], y, w, h, "YOLO11n INT8", f"크레이터 탐지 · τ={tau_ms:.0f} ms 실측")
-    _box(ax, xs[3], y, w, h, "연관 · PnP", "카탈로그 D≥1 km")
-    _box(ax, xs[4], y, w, h, "EKF 6-state", "지연 보상 + χ² 게이트")
-    _box(ax, xs[5], y, w, h, "ZEM/ZEV 유도", "무제약 해석해")
-
-    labels = ["참값 pose", "영상", "탐지 박스", "z = r_PnP", r"$\hat{x}=[\hat{r};\hat{v}]$"]
+    titles = ["3-DOF 동역학", "Unity 렌더", "YOLO11n INT8", "연관 · PnP", "EKF", "ZEM/ZEV 유도"]
+    for x, t in zip(xs, titles):
+        _box(ax, x, y, w, h, t)
     for i in range(5):
-        _arrow(ax, xs[i] + w, y + h / 2, xs[i + 1], y + h / 2, labels[i])
+        _arrow(ax, xs[i] + w, y + h / 2, xs[i + 1], y + h / 2)
 
-    # 피드백: 유도 → 동역학 (추력, 아래로), 동역학 → EKF (IMU, 위로)
+    # 피드백 루프: 유도 → 동역학 (추력, 아래), 동역학 → EKF (IMU, 위) — 라벨 없음
     ax.add_patch(FancyArrowPatch((xs[5] + w / 2, y), (xs[0] + w / 2, y),
                                  arrowstyle="-|>", mutation_scale=16, color=ACCENT,
                                  lw=1.6, connectionstyle="arc3,rad=-0.18"))
-    ax.text((xs[0] + xs[5] + w) / 2, 1.2, "추력 명령 a_T (100 Hz)", ha="center",
-            fontsize=9.5, color=ACCENT)
     ax.add_patch(FancyArrowPatch((xs[0] + w / 2, y + h), (xs[4] + w / 2, y + h),
                                  arrowstyle="-|>", mutation_scale=14, color=GRAY,
                                  lw=1.2, ls="--", connectionstyle="arc3,rad=-0.12"))
-    ax.text((xs[0] + xs[4] + w) / 2, 27.6, "IMU 100 Hz (백색잡음)", ha="center",
-            fontsize=9, color=GRAY)
 
-    # τ 구간 브레이스
-    ax.plot([xs[2], xs[4] - 1.2], [y - 1.6, y - 1.6], color=GREEN, lw=1.4)
-    ax.text((xs[2] + xs[4]) / 2, y - 3.6, "τ: 촬영 → 측정 z 도착 (이 동안 촬영 불가 = 직렬 모델)",
-            ha="center", fontsize=9.5, color=GREEN)
-
-    fig.suptitle("폐루프 시뮬레이터 파이프라인 — 인식→항법→유도를 착륙 CEP로 평가", fontsize=13)
     fig.tight_layout()
     fig.savefig(out, dpi=180, bbox_inches="tight")
     plt.close(fig)
@@ -156,16 +141,14 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--seed", type=int, default=0)  # CLI 규약 통일용
-    ap.add_argument("--tau-file", default="results/tau_ort_cpu_int8.json")
     ap.add_argument("--out-dir", default="figs/slides")
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    tau_ms = float(json.loads(Path(args.tau_file).read_text(encoding="utf-8"))["median_s"]) * 1e3
 
     p1 = out_dir / "slide_05_pipeline.png"
-    pipeline(tau_ms, p1)
+    pipeline(p1)
     print(f"fig: {p1}")
     p2 = out_dir / "slide_06_serial_model.png"
     serial_model(p2)
