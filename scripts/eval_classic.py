@@ -78,6 +78,8 @@ def main() -> None:
     ap.add_argument("--dataset", default="data/dataset")
     ap.add_argument("--classic", default=None, help="기본 config classic.model")
     ap.add_argument("--fp32", default="runs/detect/runs/train/crater/weights/best.pt")
+    ap.add_argument("--fp32-onnx", default="runs/export/crater_fp32.onnx",
+                    help="FP32 τ 벤치용 ONNX (mAP는 --fp32, τ는 INT8과 같은 ORT CPU 조건)")
     ap.add_argument("--int8", default="runs/export/crater_int8_ort.onnx")
     ap.add_argument("--n-tau", type=int, default=None, help="τ 벤치 반복 (기본 bench.n_iter)")
     ap.add_argument("--out", default="results/p7c_det_compare.json")
@@ -141,6 +143,10 @@ def main() -> None:
     entries["classic_pca_prior"]["tau"] = _bench_tau(prior.detect, bench_imgs, warmup, n_iter)
     print(f"classic(prior) τ median={entries['classic_pca_prior']['tau']['median_s'] * 1e3:.1f} ms",
           flush=True)
+    ort_fp32 = Detector(args.fp32_onnx, cfg)
+    entries["yolo_fp32"]["tau"] = _bench_tau(ort_fp32.detect, bench_imgs, warmup, n_iter)
+    entries["yolo_fp32"]["tau_model"] = args.fp32_onnx   # mAP(.pt)와 τ(ONNX)의 모델 파일 구분
+    print(f"yolo fp32 τ median={entries['yolo_fp32']['tau']['median_s'] * 1e3:.1f} ms", flush=True)
     ort = Detector(args.int8, cfg)
     entries["yolo_int8"]["tau"] = _bench_tau(ort.detect, bench_imgs, warmup, n_iter)
     print(f"yolo int8 τ median={entries['yolo_int8']['tau']['median_s'] * 1e3:.1f} ms", flush=True)

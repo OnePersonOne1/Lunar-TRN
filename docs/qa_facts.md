@@ -72,7 +72,8 @@
   500 ms 349.5 m·게이트 붕괴. 카메라 5 Hz에서 n INT8(48.7 m, 드롭0) vs n FP32(65.7 m,
   드롭50%) CI 분리 — 보상 켠 채 양자화가 CEP를 가름. (p7b_jitter_sweep.json, p7b_rate_sweep.json)
 - 고전 베이스라인(PCA 외형 기저 템플릿, SLIM 계열 비DL 근사) 비교: 같은 val·같은 지표
-  구현에서 mAP50-95 0.093 vs YOLO INT8 0.983, recall 0.256 vs 0.999, τ 218.8 vs 151.6 ms.
+  구현에서 mAP50-95 0.093 vs YOLO INT8 0.983, recall 0.256 vs 0.999, τ 237.0 vs 154.5 ms
+  (FP32 ONNX 동일 벤치 190.4 ms).
   측정 σ수평 460 vs 88 m·오검출률 0.151 vs 0.101 → **CEP 664.4 m vs 126.6 m(5.2배)**.
   τ를 서로 바꿔 넣어도 CEP 불변(둘 다 프레임 주기 1 s 미만 → 보상이 흡수) — 계열 격차는
   지연이 아니라 측정 품질로 들어온다. (p7c_det_compare, p7c_cep_compare, docs/classic_baseline.md)
