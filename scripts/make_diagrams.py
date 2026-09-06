@@ -54,7 +54,7 @@ def pipeline(out: Path) -> None:
 
     w, h, y = 13.5, 8.5, 10.0
     xs = [2, 18.5, 35, 51.5, 68, 84.5]
-    titles = ["3-DOF 동역학", "Unity 렌더", "YOLO11n INT8", "연관 · PnP", "EKF", "ZEM/ZEV 유도"]
+    titles = ["3-DOF 동역학", "Unity 렌더", "YOLO11n INT8", "PnP\n(지도 및 위치 매칭)", "EKF", "ZEM/ZEV 유도"]
     for x, t in zip(xs, titles):
         _box(ax, x, y, w, h, t)
     for i in range(5):
