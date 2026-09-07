@@ -10,7 +10,7 @@ research. Auto-labeled renders of a lunar landing approach corridor.
 
 - 아카이브: `lunar-trn-dataset-v1.zip` (1,334.8 MB, 2,602 files)
 - SHA256: `192E91051B654B3E2E8DBD1C16DD983102A64E52EF87A7CDB760F3742ACC86BD`
-- 다운로드 링크: TBD (Google Drive 공개 링크 업로드 후 기입)
+- 다운로드 링크: https://drive.google.com/file/d/17hoZEwguE-f1yYzl1-dX0JuzS1oE8xo3/view?usp=sharing
 - 생성 시점 저장소 커밋: 7946504
 
 ## 구성

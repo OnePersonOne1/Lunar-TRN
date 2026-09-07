@@ -17,6 +17,12 @@ lunar-trn/
   tests/  docs/  results/  figs/  logs/  frames/
 ```
 
+## 데이터셋
+
+라벨 자동 생성 합성 하강 데이터셋(1000 + 297프레임, 1.33 GB):
+[Google Drive 다운로드](https://drive.google.com/file/d/17hoZEwguE-f1yYzl1-dX0JuzS1oE8xo3/view?usp=sharing)
+— 구성·출처·SHA256·재생성 방법은 [docs/dataset_card.md](docs/dataset_card.md).
+
 ## 환경 설정
 
 Python ≥ 3.11, NVIDIA GPU(CUDA 12.8 이상 빌드 필요).
