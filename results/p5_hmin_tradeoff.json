@@ -1,8 +1,8 @@
 {
   "meta": {
-    "git_hash": "65db3485953d37f30a555ab62958b2972e68ad36",
-    "config_hash": "14df37bb01462e580928adfd539a547ebb12c606f2ecc2d747efb0a9f73b4818",
-    "timestamp": "2026-08-29T02:00:25.252135+00:00",
+    "git_hash": "2ba731a5f3567e1e8449548add4ef9aa288313cd",
+    "config_hash": "1f94d91018a48253c48ea5bdf6d4266eac1a2df8f1103a4c91c3f0b84398e486",
+    "timestamp": "2026-09-07T07:20:22.474104+00:00",
     "hardware": {
       "platform": "Windows-11-10.0.26200-SP0",
       "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
@@ -23,10 +23,10 @@
       ],
       "fp_rate": 0.1809,
       "n_frames_calib": 923,
-      "cep_m": 49.5,
+      "cep_m": 91.7,
       "cep_ci95_m": [
-        44.8,
-        57.9
+        80.8,
+        101.8
       ]
     },
     {
@@ -39,10 +39,10 @@
       ],
       "fp_rate": 0.1809,
       "n_frames_calib": 923,
-      "cep_m": 120.8,
+      "cep_m": 132.5,
       "cep_ci95_m": [
-        110.3,
-        131.6
+        122.3,
+        152.3
       ]
     },
     {
@@ -55,10 +55,10 @@
       ],
       "fp_rate": 0.1725,
       "n_frames_calib": 887,
-      "cep_m": 53.7,
+      "cep_m": 97.6,
       "cep_ci95_m": [
-        47.0,
-        63.2
+        85.1,
+        111.8
       ]
     },
     {
@@ -71,10 +71,10 @@
       ],
       "fp_rate": 0.1725,
       "n_frames_calib": 887,
-      "cep_m": 120.1,
+      "cep_m": 137.0,
       "cep_ci95_m": [
-        109.6,
-        134.8
+        124.4,
+        153.9
       ]
     },
     {
@@ -87,10 +87,10 @@
       ],
       "fp_rate": 0.1511,
       "n_frames_calib": 854,
-      "cep_m": 54.7,
+      "cep_m": 99.3,
       "cep_ci95_m": [
-        47.4,
-        63.6
+        86.4,
+        109.9
       ]
     },
     {
@@ -103,10 +103,10 @@
       ],
       "fp_rate": 0.1511,
       "n_frames_calib": 854,
-      "cep_m": 127.6,
+      "cep_m": 140.0,
       "cep_ci95_m": [
-        112.9,
-        138.4
+        127.1,
+        153.8
       ]
     },
     {
@@ -119,10 +119,10 @@
       ],
       "fp_rate": 0.1163,
       "n_frames_calib": 808,
-      "cep_m": 59.4,
+      "cep_m": 102.8,
       "cep_ci95_m": [
-        51.4,
-        65.2
+        92.6,
+        110.5
       ]
     },
     {
@@ -135,10 +135,10 @@
       ],
       "fp_rate": 0.1163,
       "n_frames_calib": 808,
-      "cep_m": 127.2,
+      "cep_m": 149.9,
       "cep_ci95_m": [
-        113.7,
-        140.8
+        130.4,
+        159.5
       ]
     },
     {
@@ -151,10 +151,10 @@
       ],
       "fp_rate": 0.0928,
       "n_frames_calib": 765,
-      "cep_m": 66.7,
+      "cep_m": 117.6,
       "cep_ci95_m": [
-        58.3,
-        74.5
+        107.5,
+        129.4
       ]
     },
     {
@@ -167,10 +167,10 @@
       ],
       "fp_rate": 0.0928,
       "n_frames_calib": 765,
-      "cep_m": 126.1,
+      "cep_m": 155.7,
       "cep_ci95_m": [
-        116.1,
-        142.7
+        136.3,
+        173.3
       ]
     },
     {
@@ -183,10 +183,10 @@
       ],
       "fp_rate": 0.0781,
       "n_frames_calib": 704,
-      "cep_m": 75.8,
+      "cep_m": 132.9,
       "cep_ci95_m": [
-        65.4,
-        91.2
+        113.5,
+        152.5
       ]
     },
     {
@@ -199,10 +199,10 @@
       ],
       "fp_rate": 0.0781,
       "n_frames_calib": 704,
-      "cep_m": 138.7,
+      "cep_m": 162.0,
       "cep_ci95_m": [
-        127.0,
-        152.4
+        147.6,
+        188.3
       ]
     },
     {
@@ -215,10 +215,10 @@
       ],
       "fp_rate": 0.0709,
       "n_frames_calib": 635,
-      "cep_m": 89.0,
+      "cep_m": 148.9,
       "cep_ci95_m": [
-        80.2,
-        103.9
+        132.7,
+        176.7
       ]
     },
     {
@@ -231,10 +231,170 @@
       ],
       "fp_rate": 0.0709,
       "n_frames_calib": 635,
-      "cep_m": 149.5,
+      "cep_m": 194.0,
       "cep_ci95_m": [
-        139.1,
-        164.1
+        171.9,
+        210.1
+      ]
+    },
+    {
+      "h_min_m": 24000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        88.4,
+        82.0,
+        33.9
+      ],
+      "fp_rate": 0.0628,
+      "n_frames_calib": 573,
+      "cep_m": 164.6,
+      "cep_ci95_m": [
+        139.9,
+        193.0
+      ]
+    },
+    {
+      "h_min_m": 24000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        88.4,
+        82.0,
+        33.9
+      ],
+      "fp_rate": 0.0628,
+      "n_frames_calib": 573,
+      "cep_m": 216.6,
+      "cep_ci95_m": [
+        182.7,
+        235.2
+      ]
+    },
+    {
+      "h_min_m": 25000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        95.3,
+        87.0,
+        37.3
+      ],
+      "fp_rate": 0.0464,
+      "n_frames_calib": 496,
+      "cep_m": 213.0,
+      "cep_ci95_m": [
+        193.6,
+        229.5
+      ]
+    },
+    {
+      "h_min_m": 25000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        95.3,
+        87.0,
+        37.3
+      ],
+      "fp_rate": 0.0464,
+      "n_frames_calib": 496,
+      "cep_m": 254.1,
+      "cep_ci95_m": [
+        223.1,
+        276.4
+      ]
+    },
+    {
+      "h_min_m": 26000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        96.2,
+        92.0,
+        38.7
+      ],
+      "fp_rate": 0.0493,
+      "n_frames_calib": 426,
+      "cep_m": 289.1,
+      "cep_ci95_m": [
+        259.7,
+        320.4
+      ]
+    },
+    {
+      "h_min_m": 26000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        96.2,
+        92.0,
+        38.7
+      ],
+      "fp_rate": 0.0493,
+      "n_frames_calib": 426,
+      "cep_m": 299.4,
+      "cep_ci95_m": [
+        273.4,
+        339.4
+      ]
+    },
+    {
+      "h_min_m": 27000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        94.6,
+        95.3,
+        40.7
+      ],
+      "fp_rate": 0.0292,
+      "n_frames_calib": 343,
+      "cep_m": 445.7,
+      "cep_ci95_m": [
+        394.0,
+        483.6
+      ]
+    },
+    {
+      "h_min_m": 27000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        94.6,
+        95.3,
+        40.7
+      ],
+      "fp_rate": 0.0292,
+      "n_frames_calib": 343,
+      "cep_m": 481.9,
+      "cep_ci95_m": [
+        447.5,
+        513.0
+      ]
+    },
+    {
+      "h_min_m": 28000.0,
+      "delay_comp": true,
+      "sigma_xyz_m": [
+        89.4,
+        94.4,
+        40.3
+      ],
+      "fp_rate": 0.0278,
+      "n_frames_calib": 252,
+      "cep_m": 690.3,
+      "cep_ci95_m": [
+        621.9,
+        770.0
+      ]
+    },
+    {
+      "h_min_m": 28000.0,
+      "delay_comp": false,
+      "sigma_xyz_m": [
+        89.4,
+        94.4,
+        40.3
+      ],
+      "fp_rate": 0.0278,
+      "n_frames_calib": 252,
+      "cep_m": 733.4,
+      "cep_ci95_m": [
+        676.9,
+        781.4
       ]
     }
   ],
