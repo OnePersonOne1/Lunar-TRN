@@ -185,8 +185,9 @@ Unity 서버가 config unity.port에 떠 있다. scripts/check_projection.py를 
       110.8 m 평탄 — p7b_tau_serial.json으로 확인 완료), 지연이 성능에 들어오는
       경로는 측정률(τ>주기 드롭: 2 s 177.8 / 5 s 250.4 m)·촬영 시각 태깅 오차
       (1σ 200 ms면 미보상보다 악화 — p7b_jitter_sweep.json)·오검출률
-      (p7b_fp_sweep.json)이다. 카메라 레이트를 올리면 이 경로가 지배해 5 Hz에서
-      양자화 단독이 CEP를 유의하게 가른다(48.7 vs 65.7 m — p7b_rate_sweep.json).
+      (p7b_fp_sweep.json)이다. 양자화의 이득은 τ를 프레임 주기 아래로 유지하는
+      처리량 여유로 서술한다(5 Hz CEP 수치 48.7/65.7 m는 직렬 모델 조건부라
+      슬라이드 사용 금지 — 2026-09-07 결정, qa_facts §8 촬영 아키텍처 항목).
     ④ 폐루프 평가가 설계값을 바꾼 사례: h_min 17 km(iid 통계 최적) vs 22 km
       (실런 검증 확정), 게이트 연쇄 기각 발견→공분산 팽창 도입.
     발표용 축약 3개는 docs/storyline.md의 기여 문구를 그대로 쓴다.
@@ -221,14 +222,15 @@ Unity 서버가 config unity.port에 떠 있다. scripts/check_projection.py를 
   ① 표지·한 줄 주장(mAP 아닌 착륙 CEP로 평가) ② 문제(온보드 연산 제약→양자화 필수,
   기존 평가는 mAP/항법 오차에서 종료) ③ 방법 한 장(파이프라인 다이어그램 slide_05,
   변인 통제 한 줄) ④ 핵심 결과: CEP vs τ(slide_10) — 보상 시 평탄, 성립 조건 존재
-  ⑤ 킬러 결과: 카메라 5 Hz에서 양자화 단독이 CEP를 가름(slide_12b, 48.7 vs 65.7 m)
+  ⑤ 킬러 결과: 양자화 = τ를 주기 아래로 유지하는 처리량 여유(5 Hz 주기 200 ms를
+  n INT8만 충족 — τ 수치로만 말하고, 직렬 조건부 CEP 48.7/65.7 m는 사용 금지)
   ⑥ 시연 영상 1컷(display2+display3 동기) ⑦ 결론·기여·공개.
   각 슬라이드: 제목 / 화면에 띄울 것(자산 파일명) / 발표 대본(초 단위, 실제 말할 문장)
   / 이 슬라이드가 여는 부록 슬라이드 번호.
 - 부록(무제한): 본편에서 뺀 모든 것 — 전체 파이프라인·좌표계, 측정 보정 방법론,
-  τ 벤치 4백엔드+GPU 반례, 온보드 3단 경로(HR5000 127배·RTG4 FPGA), 직렬 모델·지연
-  보상 모식도(slide_06), 미보상 τ 스윕 전체, 오검출률 곡선(slide_11), 지터 스윕
-  (slide_12a), 고전 베이스라인 비교(slide_13a·13b, docs/classic_baseline.md), SLIM 정합성 표, P6 실런·일반화 test, 한계(limitations.md 전체),
+  τ 벤치 4백엔드+GPU 반례, 온보드 3단 경로(HR5000 127배·RTG4 FPGA), 지연 보상
+  모식도(slide_06_delay_comp), 미보상 τ 스윕 전체, 오검출률 곡선(slide_11), 지터 스윕
+  (slide_12_jitter), 고전 베이스라인 비교(slide_13a·13b, docs/classic_baseline.md), SLIM 정합성 표, P6 실런·일반화 test, 한계(limitations.md 전체),
   선행연구 표(qa_facts §7), ΔV, 기호표(symbols.md 링크). 부록 각 장도 자산·수치 출처를 단다.
 
 엄수: 숫자는 docs/results_summary.md에 있는 것만. 없으면 그 결과를 먼저 만들거나 "TBD".

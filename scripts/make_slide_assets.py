@@ -178,10 +178,9 @@ def make_results_summary(results_dir: Path, out: Path) -> None:
 # 슬라이드용 그림 복사: (원본, 슬라이드 파일명)
 SLIDE_FIGS = [
     # slide_05/06은 scripts/make_diagrams.py가 figs/slides/에 직접 생성한다(여기서 복사 안 함).
-    ("figs/p7b_tau_scaling.png", "slide_10_cep_vs_tau.png"),
+    ("figs/p7b_tau_scaling_slide.png", "slide_10_cep_vs_tau.png"),
     ("figs/p7b_cep_vs_fp.png", "slide_11_cep_vs_fp.png"),
-    ("figs/p7b_cep_vs_jitter.png", "slide_12a_jitter.png"),
-    ("figs/p7b_cep_vs_rate.png", "slide_12b_rate.png"),
+    ("figs/p7b_cep_vs_jitter.png", "slide_12_jitter.png"),
     ("figs/p7b_pnp_error_hist_s.png", "slide_07_pnp_hist_s.png"),
     ("figs/p7c_det_compare.png", "slide_13a_classic_det.png"),
     ("figs/p7c_cep_compare.png", "slide_13b_classic_cep.png"),

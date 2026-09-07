@@ -47,6 +47,8 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)  # CLI 규약 통일용
     ap.add_argument("--out", default="results/p7b_tau_scaling.json")
     ap.add_argument("--fig", default="figs/p7b_tau_scaling.png")
+    ap.add_argument("--fig-slide", default="figs/p7b_tau_scaling_slide.png",
+                    help="τ ≤ 프레임 주기만 그린 슬라이드판 — 직렬/병렬 아키텍처와 무관한 영역")
     ap.add_argument("--comp-on", default="results/p7b_tau_serial.json")
     ap.add_argument("--comp-off", default="results/p7b_tau_serial_compoff.json")
     ap.add_argument("--bench", default="results/p7b_cpu_bench.json")
@@ -148,46 +150,56 @@ def main() -> None:
     import matplotlib.pyplot as plt
     import numpy as np
 
-    fig, ax = plt.subplots(figsize=(9, 5.5))
-    for cmap, color, name in ((on, "tab:blue", "delay comp ON"),
-                              (off, "tab:red", "delay comp OFF")):
-        conds = sorted(cmap.values(), key=lambda c: c["tau_s"])
-        taus = [c["tau_s"] for c in conds]
-        ceps = [c["cep_m"] for c in conds]
-        yerr = np.vstack([
-            np.array(ceps) - np.array([c["cep_ci95_m"][0] for c in conds]),
-            np.array([c["cep_ci95_m"][1] for c in conds]) - np.array(ceps)])
-        ax.errorbar(taus, ceps, yerr=yerr, marker="o", ms=4, capsize=3,
-                    color=color, label=name)
-        for i, c in enumerate(conds):
-            if c.get("label") in CPU_LABELS:
-                up = CPU_LABELS.index(c["label"]) % 2 == 0  # 인접 라벨 상하 교차 배치
-                ax.annotate(c["label"], (c["tau_s"], c["cep_m"]),
-                            textcoords="offset points",
-                            xytext=(4, 7 if up else -13), fontsize=7, color=color)
-    ax.axvline(frame_period, color="gray", ls="--", lw=1.2)
-    ax.annotate("frame period", xy=(frame_period, 0.985), xycoords=("data", "axes fraction"),
-                xytext=(4, -6), textcoords="offset points", fontsize=8, color="gray")
-    ax.axvspan(*FPGA_EST_S, alpha=0.10, color="tab:green")
-    ax.annotate("RTG4-class FPGA+CNN (est.)", xy=(FPGA_EST_S[0] * 1.05, 0.90),
-                xycoords=("data", "axes fraction"), fontsize=8, color="tab:green")
     hr = sp["JAXA HR5000 계열 (MIPS64 5Kf, 200 MHz)"]["dmips_x"]
-    ax.annotate(f"legacy CPU classes: τ×68~{hr:.0f} → 13~25 s (off-grid, infeasible) →",
-                xy=(0.99, 0.03), xycoords="axes fraction", ha="right", fontsize=8,
-                color="dimgray")
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_xlabel("τ [s] (serial capture model)")
-    ax.set_ylabel("CEP [m]")
-    ax.set_title("Landing CEP vs τ — onboard-class mapping "
-                 "(calibrated stats, n=200/point)")
-    ax.grid(True, which="both", alpha=0.3)
-    ax.legend()
-    fig.tight_layout()
-    fig_path = Path(args.fig)
-    fig_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(fig_path, dpi=150)
-    print(f"fig: {fig_path}")
+    # 슬라이드판(tau_max=frame_period)은 τ ≤ 주기 영역만 — 직렬/병렬이 비트 동일한
+    # 아키텍처 무관 구간이라 x축에 직렬 모델 표기가 필요 없다. 전체판은 문서·백업용.
+    for fig_arg, tau_max in ((args.fig, None), (args.fig_slide, frame_period)):
+        fig, ax = plt.subplots(figsize=(9, 5.5))
+        for cmap, color, name in ((on, "tab:blue", "delay comp ON"),
+                                  (off, "tab:red", "delay comp OFF")):
+            conds = sorted(cmap.values(), key=lambda c: c["tau_s"])
+            if tau_max is not None:
+                conds = [c for c in conds if c["tau_s"] <= tau_max * 1.001]
+            taus = [c["tau_s"] for c in conds]
+            ceps = [c["cep_m"] for c in conds]
+            yerr = np.vstack([
+                np.array(ceps) - np.array([c["cep_ci95_m"][0] for c in conds]),
+                np.array([c["cep_ci95_m"][1] for c in conds]) - np.array(ceps)])
+            ax.errorbar(taus, ceps, yerr=yerr, marker="o", ms=4, capsize=3,
+                        color=color, label=name)
+            for c in conds:
+                if c.get("label") in CPU_LABELS:
+                    up = CPU_LABELS.index(c["label"]) % 2 == 0  # 인접 라벨 상하 교차 배치
+                    ax.annotate(c["label"], (c["tau_s"], c["cep_m"]),
+                                textcoords="offset points",
+                                xytext=(4, 7 if up else -13), fontsize=7, color=color)
+        ax.axvline(frame_period, color="gray", ls="--", lw=1.2)
+        ax.annotate("frame period", xy=(frame_period, 0.985),
+                    xycoords=("data", "axes fraction"),
+                    xytext=(-52 if tau_max else 4, -6), textcoords="offset points",
+                    fontsize=8, color="gray")
+        ax.axvspan(*FPGA_EST_S, alpha=0.10, color="tab:green")
+        ax.annotate("RTG4-class FPGA+CNN (est.)", xy=(FPGA_EST_S[0] * 1.05, 0.90),
+                    xycoords=("data", "axes fraction"), fontsize=8, color="tab:green")
+        ax.annotate(f"legacy CPU classes: τ×68~{hr:.0f} → 13~25 s (off-grid, infeasible) →",
+                    xy=(0.99, 0.03), xycoords="axes fraction", ha="right", fontsize=8,
+                    color="dimgray")
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        if tau_max is not None:
+            ax.set_xlim(right=tau_max * 1.15)
+        ax.set_xlabel("τ [s]" if tau_max else "τ [s] (serial capture model)")
+        ax.set_ylabel("CEP [m]")
+        ax.set_title("Landing CEP vs τ — onboard-class mapping "
+                     "(calibrated stats, n=200/point)")
+        ax.grid(True, which="both", alpha=0.3)
+        ax.legend()
+        fig.tight_layout()
+        fig_path = Path(fig_arg)
+        fig_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(fig_path, dpi=150)
+        plt.close(fig)
+        print(f"fig: {fig_path}")
 
 
 if __name__ == "__main__":

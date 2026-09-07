@@ -1,6 +1,6 @@
 """슬라이드용 다이어그램 생성 CLI (P8): 파이프라인·직렬 처리/지연 보상 모식도.
 
-출력: figs/slides/slide_05_pipeline.png, figs/slides/slide_06_serial_model.png.
+출력: figs/slides/slide_05_pipeline.png, figs/slides/slide_06_delay_comp.png.
 수치 라벨은 results 파일에서만 읽는다(τ median). 폰트는 Windows 한글(Malgun Gothic).
 """
 from __future__ import annotations
@@ -73,35 +73,10 @@ def pipeline(out: Path) -> None:
     plt.close(fig)
 
 
-def serial_model(out: Path) -> None:
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12.5, 6.0), height_ratios=[1, 1.15])
+def delay_comp(out: Path) -> None:
+    """지연 보상(되감기-재전파) 단독 다이어그램 — 직렬 처리 패널은 슬라이드에서 제외."""
+    fig, ax2 = plt.subplots(figsize=(12.5, 3.4))
 
-    # ── 패널 A: 직렬 촬영 모델 (τ=2.5 s 예시, 주기 1 s)
-    ax1.set_xlim(-0.3, 8.8)
-    ax1.set_ylim(-1.15, 1.9)
-    ax1.axis("off")
-    ax1.set_title("직렬 처리 모델 — τ가 프레임 주기를 넘으면 촬영 기회를 잃는다 (예: τ=2.5 s, 1 Hz)",
-                  fontsize=11.5, loc="left")
-    ax1.axhline(0, color="black", lw=1)
-    for t in range(9):
-        ax1.plot([t, t], [-0.09, 0.09], color="black", lw=1)
-        ax1.text(t, -0.42, f"{t}", ha="center", fontsize=8.5)
-    ax1.text(8.28, -0.42, "t [s]", fontsize=8.5)
-    for cap, color in ((0, GREEN), (3, GREEN), (6, GREEN)):
-        ax1.plot(cap, 0, "o", color=color, ms=9, zorder=5)
-        ax1.add_patch(Rectangle((cap, 0.32), 2.5, 0.42, fc="#d5e8d4", ec=GREEN, lw=1.2))
-        ax1.text(cap + 1.25, 0.53, "처리 중 (busy)", ha="center", va="center",
-                 fontsize=8.5, color=GREEN)
-        ax1.annotate("", xy=(cap + 2.5, 0.14), xytext=(cap + 2.5, 0.32),
-                     arrowprops=dict(arrowstyle="-|>", color=GREEN))
-        ax1.text(cap + 2.5, 1.0, "z 도착", ha="center", fontsize=8, color=GREEN)
-    for drop in (1, 2, 4, 5, 7, 8):
-        ax1.plot(drop, 0, "x", color=ACCENT, ms=10, mew=2.2, zorder=5)
-    ax1.plot([], [], "o", color=GREEN, label="촬영")
-    ax1.plot([], [], "x", color=ACCENT, mew=2.2, label="드롭 (n_dropped)")
-    ax1.legend(loc="upper right", fontsize=9, frameon=False)
-
-    # ── 패널 B: 지연 보상 (링버퍼 재전파)
     ax2.set_xlim(-0.3, 8.8)
     ax2.set_ylim(-2.15, 2.1)
     ax2.axis("off")
@@ -150,8 +125,8 @@ def main() -> None:
     p1 = out_dir / "slide_05_pipeline.png"
     pipeline(p1)
     print(f"fig: {p1}")
-    p2 = out_dir / "slide_06_serial_model.png"
-    serial_model(p2)
+    p2 = out_dir / "slide_06_delay_comp.png"
+    delay_comp(p2)
     print(f"fig: {p2}")
 
 

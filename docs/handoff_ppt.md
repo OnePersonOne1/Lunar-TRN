@@ -29,7 +29,9 @@
 - 한 줄 주장: "AI 탐지기를 mAP가 아니라 착륙 오차 분포(CEP)로 평가한다."
 - 본편 7장 목표: ①표지+주장 ②문제(온보드 연산 제약→양자화 필수, 기존 평가는 mAP/항법
   오차에서 종료) ③방법 한 장(파이프라인) ④핵심결과 CEP vs τ(보상 시 평탄, 성립 조건 존재)
-  ⑤킬러결과(카메라 5 Hz에서 양자화 단독이 CEP를 가름: 48.7 vs 65.7 m) ⑥시연 영상 1컷
+  ⑤킬러결과(양자화의 이득 = τ를 프레임 주기 아래로 유지하는 처리량 여유 — 5 Hz 주기
+  200 ms를 n INT8 195.7 ms만 충족, n FP32 219.0 ms는 초과. 구 5 Hz CEP 수치 48.7/65.7 m는
+  직렬 모델 조건부라 사용 금지, 9/7 결정) ⑥시연 영상 1컷
   ⑦결론·기여·공개(GitHub).
 - 부록: 본편에서 뺀 전부(전체 파이프라인, 측정 보정, τ 벤치 4백엔드+GPU 반례, 온보드
   3단 경로(HR5000 127배·RTG4 FPGA), 미보상 τ 스윕, 오검출률 곡선, 지터 스윕, SLIM 표,
@@ -58,7 +60,7 @@
 | 5 | 숫자 요약 | `docs/results_summary.md` | 쓸 수 있는 숫자의 유일 출처 |
 | 6 | Q&A 사실집 | `docs/qa_facts.md` | 부록·선행연구 표·산출물 매핑 |
 | 6b | 고전 비교 상세 | `docs/classic_baseline.md` | 부록 13a·13b의 방법·한계·반론 대비 |
-| 7 | 그림 자산 | `figs/slides/slide_05_pipeline.png`, `slide_06_serial_model.png`, `slide_07_pnp_hist_s.png`, `slide_10_cep_vs_tau.png`, `slide_11_cep_vs_fp.png`, `slide_12a_jitter.png`, `slide_12b_rate.png`, `slide_13a_classic_det.png`, `slide_13b_classic_cep.png` | 슬라이드 삽화 |
+| 7 | 그림 자산 | `figs/slides/slide_05_pipeline.png`, `slide_06_delay_comp.png`, `slide_07_pnp_hist_s.png`, `slide_10_cep_vs_tau.png`(τ ≤ 주기만), `slide_11_cep_vs_fp.png`, `slide_12_jitter.png`, `slide_13a_classic_det.png`, `slide_13b_classic_cep.png` | 슬라이드 삽화 (직렬 모델 도해·5 Hz 레이트 그림은 9/7 제외) |
 | 8 | 시연 영상(대표컷 캡처 또는 파일) | `figs/slides/display2_landing.mp4`, `display3_detection_synced.mp4`, `display4_telemetry.png` | 시연 슬라이드 |
 
 메모:
