@@ -37,3 +37,4 @@ results/p8_*_meas.jsonl
 frames/
 data/calib/
 results/tmp_*.json
+data/release/
